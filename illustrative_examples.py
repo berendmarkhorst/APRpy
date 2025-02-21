@@ -47,7 +47,7 @@ def toy_example():
     #         if model.variableValue(x[p.id, e]) > 0:
     #             print(f"Pipe {p.id} edge {e} {model.variableValue(x[p.id, e]):.2f}")
 
-    plot_space_and_route(original_search_space, result)
+    plot_space_and_route(original_search_space, obstacles, result)
 
 
 def example_dong_and_bian():
@@ -91,10 +91,11 @@ def example_dong_and_bian():
     all_connected_components = [connected_components1]
     apr = AutomatedPipeRouting(all_connected_components, graph, False)
 
-    model, x, y1, y2, z, f = build_model(apr, 3600)
-    result = run_model(model, apr, x)
+    # model, x, y1, y2, z, f = build_model(apr, 3600)
+    # result = run_model(model, apr, x)
+    result = {}
 
-    plot_space_and_route(search_space, result)
+    plot_space_and_route(search_space, obstacles, result)
 
 
 if __name__ == "__main__":
