@@ -20,7 +20,7 @@ def make_model(time_limit: float, logfile: str = "") -> hp.HighsModel:
     # Create model
     model = hp.Highs()
     model.setOptionValue("time_limit", time_limit)
-    model.setOptionValue("output_flag", False)  # Disable/enable console output
+    model.setOptionValue("output_flag", True)  # Disable/enable console output
 
     # Clear the logfile and start logging
     if logfile != "":
@@ -58,7 +58,6 @@ def add_directed_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting) ->
           for a in cc.arcs}
     z = {(k, l): model.addVariable(0, 1, name=f"z[{k},{l}]") for k, l in k_indices}
     b = {v: model.addVariable(0, 1, name=f"b[{v}]") for v in apr.nodes}
-    b_dummy_out = {v: model.addVariable(0, 1, name=f"b[{v}]") for v in apr.nodes}
 
     for col in range(model.getNumCol()):
         model.changeColIntegrality(col, hp.HighsVarType.kInteger)
@@ -69,9 +68,9 @@ def add_directed_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting) ->
             model.addConstr(y2[cc.id, cc.pipe.id, a] <= y1[cc.pipe.id, a])
 
     # Constraint 2: indegree of each vertex cannot exceed 1
-    for cc in apr.connected_components:
-        for v in apr.nodes:
-            model.addConstr(sum(y1[cc.pipe.id, (u, w)] for u, w in cc.arcs if v == w) <= 1)
+    for v in apr.nodes:
+        LHS = sum(y1[p.id, (u, w)] for p in apr.pipes for u, w in apr.arcs if v == w)
+        model.addConstr(LHS <= 1)
 
     # Constraint 3: connection between y1 and x
     for p in apr.pipes:
@@ -139,7 +138,7 @@ def add_directed_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting) ->
                         model.addConstr(y1[p.id, (n2, v)] + y1[p.id, (v, n1)] - 1 <= b[v])
                         # pass
 
-    return model, x, y1, y2, z, b, b_dummy_out
+    return model, x, y1, y2, z, b
 
 
 def demand_and_supply_directed(apr: AutomatedPipeRouting, cc_k: ConnectedComponents, t: Tuple[int, int, int],
@@ -222,7 +221,7 @@ def build_model(apr: AutomatedPipeRouting, time_limit: float, logfile: str = "")
     start_time = time.time()
 
     # Add constraints
-    model, x, y1, y2, z, b, b_dummy_out = add_directed_constraints(model, apr)
+    model, x, y1, y2, z, b = add_directed_constraints(model, apr)
     model, f = add_flow_constraints(model, apr, z, y2)
 
     # End tracking compilation time
@@ -231,7 +230,7 @@ def build_model(apr: AutomatedPipeRouting, time_limit: float, logfile: str = "")
 
     logging.info(f"Model built in {compilation_time:.2f} seconds.")
 
-    return model, x, y1, y2, z, f, b, b_dummy_out
+    return model, x, y1, y2, z, f, b
 
 
 def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarType, b: hp.HighsVarType) -> Dict[Pipe, List[Tuple[int, int, int]]]:
@@ -245,11 +244,11 @@ def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarTyp
     logging.info(f"Started with running the model...")
 
     # Optimize model
-    model.minimize(sum(x[p.id, e] * apr.graph.edges[e]["weight"] * p.costs for p in apr.pipes for e in apr.edges) + 0.1 * sum(b[v] for v in apr.nodes))
+    model.minimize(sum(x[p.id, e] * apr.graph.edges[e]["weight"] * p.costs for p in apr.pipes for e in apr.edges) + sum(b[v] for v in apr.nodes))
 
     logging.info(f"Runtime: {model.getRunTime():.2f} seconds")
 
-    return {p: [e for e in apr.edges if model.variableValue(x[p.id, e]) == 1] for p in apr.pipes}
+    return {p: [e for e in apr.edges if model.variableValue(x[p.id, e]) > 0.5] for p in apr.pipes}
 
 
 # def toy_example():

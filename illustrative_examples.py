@@ -25,29 +25,38 @@ def toy_example():
     search_space_reduced = step1(search_space)
 
     # Convert binary 3D array to graph
-    graph = step3(search_space_reduced)
+    graph = step3(search_space_reduced, original_search_space)
 
     # Make small toy example
     pipe1 = Pipe(1, 1)
     pipe2 = Pipe(2, 1)
-    connected_components1 = ConnectedComponents(1, [(0, 0, 0), (0, 9, 9), (2, 2, 0)], pipe1, list(graph.edges()))
+    connected_components1 = ConnectedComponents(1, [(0, 0, 0), (0, 9, 9), (2, 2, 1)], pipe1, list(graph.edges()))
     connected_components2 = ConnectedComponents(2, [(9, 0, 0), (9, 9, 9)], pipe2, list(graph.edges()))
     all_connected_components = [connected_components1, connected_components2]
-    # all_connected_components = [connected_components2]
     apr = AutomatedPipeRouting(all_connected_components, graph, False)
 
-    model, x, y1, y2, z, f, b, b_dummy_out = build_model(apr, 3600)
+    apr = step4(apr, 1, 10)
+
+    apr = simplify_graph(apr)
+
+    model, x, y1, y2, z, f, b = build_model(apr, 3600)
     result = run_model(model, apr, x, b)
 
     # for v in apr.nodes:
     #     print(f"Node {v}: {model.variableValue(b[v])}")
 
-    # for p in apr.pipes:
+    # for p in [pipe1]:
     #     for e in apr.edges:
     #         if model.variableValue(x[p.id, e]) > 0:
     #             print(f"Pipe {p.id} edge {e} {model.variableValue(x[p.id, e]):.2f}")
 
-    plot_space_and_route(original_search_space, result)
+    included_nodes = {p: set() for p in apr.pipes}
+    # Loop over the edges and also include all the nodes between the source and sink of the edge
+    for pipe in apr.pipes:
+        for edge in result[pipe]:
+            included_nodes[pipe].update(bresenham_3d(edge[0], edge[1]))
+
+    plot_space_and_route(original_search_space, included_nodes)
 
 
 def example_dong_and_bian():
@@ -76,11 +85,13 @@ def example_dong_and_bian():
     for obstacle in obstacles:
         search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
 
+    original_search_space = search_space.copy()
+
     # Apply space modeling
     search_space = step1(search_space)
 
     # Convert binary 3D array to graph
-    graph = step3(search_space)
+    graph = step3(search_space, original_search_space)
 
     # Make small toy example
     pipe1 = Pipe(1, 1)
@@ -91,6 +102,9 @@ def example_dong_and_bian():
     all_connected_components = [connected_components1]
     apr = AutomatedPipeRouting(all_connected_components, graph, False)
 
+    apr = step4(apr, 1, 10)
+
+    # apr = simplify_graph(apr)
     model, x, y1, y2, z, f = build_model(apr, 3600)
     result = run_model(model, apr, x)
 

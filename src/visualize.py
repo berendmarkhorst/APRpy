@@ -34,7 +34,7 @@ def plot_space_and_route(box: np.array, result: Dict[Pipe, List[Tuple[int, int, 
     ax.voxels(voxels, facecolors=colors_array, edgecolor='k')
 
     for idx, pipe in enumerate(result.keys()):
-        points = np.array([pt for edge in result[pipe] for pt in edge])
+        points = np.array([pt for pt in result[pipe]])
         for pt in points:
             x, y, z = pt
             ax.bar3d(x, y, z, 1, 1, 1, color=colors[idx], alpha=0.5, edgecolor='k')

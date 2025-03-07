@@ -25,6 +25,7 @@ class ConnectedComponents:
         self.terminals = terminals
         self.pipe = pipe
         self.edges = edges
+        self.allowed_nodes = set([u for u, v in edges] + [v for u, v in edges])
         self.arcs = edges + [(v, u) for u, v in edges]
         self.root = terminals[0]
 
@@ -66,6 +67,11 @@ class AutomatedPipeRouting:
         # Check if there is no overlap in terminals between connected components with the same pipe object.
         pipe_dict = {p: set() for p in all_pipes}
         for cc in connected_components:
+            # Check if the terminals are in the graph
+            for terminal in cc.terminals:
+                if terminal not in self.graph.nodes():
+                    raise ValueError(f"Terminal {terminal} not in the graph.")
+
             if set(cc.terminals).intersection(pipe_dict[cc.pipe]):
                 raise ValueError(f"Terminals of {cc.pipe} overlap.")
             else:
@@ -80,6 +86,14 @@ class AutomatedPipeRouting:
 
         # Per pipe type, collect the steiner points
         steiner_points_per_pipe = {p: set(self.graph.nodes()) - pipe_dict[p] for p in all_pipes}
+
+        # Check if the graph has a path between all terminals
+        for cc in connected_components:
+            for terminal1 in cc.terminals:
+                for terminal2 in cc.terminals:
+                    if terminal1 != terminal2:
+                        if not nx.has_path(self.graph, terminal1, terminal2):
+                            raise ValueError(f"No path between {terminal1} and {terminal2}.")
 
         return connected_components, all_pipes, steiner_points_per_pipe
 
