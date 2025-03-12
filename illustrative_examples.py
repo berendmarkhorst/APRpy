@@ -44,10 +44,71 @@ def toy_example():
 
     plot_space_and_route(original_search_space, obstacles, result)
 
+def example_jiang_etall(case_nr: int = 0):
+    """
+    example from W.-Y. Jiang et al. / Ocean Engineering 
+    https://www.sciencedirect.com/science/article/pii/S0029801815001031?via%3Dihub
+    :return:
+    """
+    
+    size= 40
+    search_space = np.ones((size,size,size)) #todo: do a check, this space goes from 1 to 40....
+    
+    obstacles = np.array([[6,12,1,24,16,40], # table 1
+                         [32,12,1,40,16,40],
+                         [1,26,1,8,30,40],
+                         [16,26,1,34,30,40],
+                         [1,1,12,24,40,16],
+                         [16,1,26,40,40,30]])
+
+    for obstacle in obstacles:
+        search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
+    
+    original_search_space = search_space.copy()
+       
+    # Apply space modeling
+    search_space = step1(search_space)
+       
+    # Convert binary 3D array to graph
+    graph = step3(search_space, original_search_space)
+    
+    #todo: direction of endpoints = X,X?
+    cases = {'case1': [(20,1,1), (20,40,40)], # table 2
+             
+             'case2': [(20, 1, 1), (20, 40, 30), 
+                       (20, 1, 30), (20, 40, 1)], #table3 multiple pipes
+             
+             'case3': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40)], #table4 branch piping
+
+             'case4': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40), #table 5, branch piping
+                       (20,1,30),(40,20,1)] #table5 the single Pipe
+
+             }
+    
+    pipe_starts_ends = cases['case'+str(case_nr+1)]
+    all_connected_components = []
+    pipeid = 1
+    for start, end in zip(pipe_starts_ends[0::2], pipe_starts_ends[1::2]):
+        pipe_i = Pipe(id=pipeid, costs=1)
+        print(start, end)
+        connected_components_i = ConnectedComponents(1, [start, end], pipe_i, list(graph.edges()))
+        all_connected_components.append(connected_components_i)
+        pipeid += 1
+       
+    # apr = AutomatedPipeRouting(all_connected_components, graph, False) # 20,1,1 is not in graph?
+       
+    # apr = step4(apr, 1, 10)
+       
+    # apr = simplify_graph(apr)
+    # model, x, y1, y2, z, f, b = build_model(apr, 3600)
+    # result = run_model(model, apr, x, b)
+       
+    plot_space_and_route(search_space, obstacles, {})
 
 def example_dong_and_bian(case_nr: int = 0):
     """
     Example from Dong and Bian used to illustrate the model.
+    https://ieeexplore.ieee.org/abstract/document/9172005
     :return:
     """
     # Make the 3D binary array
@@ -113,42 +174,101 @@ def example_dong_and_bian(case_nr: int = 0):
 
 def example_dong_and_bian_equipment_model():
     """
-    Example from Dong and Bian used to illustrate the model.
+    real world example of equipment room from Dong and Bian with different pipe types....
+    https://ieeexplore.ieee.org/abstract/document/9172005
     :return:
     """
-    # (-5000,200,-1000),(-2000,2000,-3000),
+    search_space = np.ones((200, 80, 120))
+    
+    obstacles = np.array([
+                        [-5000, 200,    -1000, -2000, 2000,  -3000], 
+                        
+                        [-1000, -350,   -2300,  -500, -250,  -3000], 
+                        [-900,  -100,   -2500, -600,  -250, -2800],  
+                        [-1000, 250,    -2500, -500,  -100, -2950],  
+                        [-875,  -100,   -2250, -625,  150,  -2500], 
+                        
+                        [-1000, -1350,  -2300, -500,  -1250,  -3000], 
+                        [-900,  -1100,  -2500,  -600, -1250, -2800],  
+                        [-1000, -750,   -2500,  -500, -1100, -2950],  
+                        [-875,  -1100,  -2250,  -625, -850,  -2500], 
+                        
+                        [400,   -400,   -1800,  1800, 1400,  -3000], 
+                        
+                        [2600,  -400,   -1800, 4000,  1400, -3000],  
+                        
+                        [-2800, -1800,  2700,  -1700,  -2000,  -900],  
+                        [-2550, -1300,  1350,  -1950,  -1800,  900], 
+                        [-2410, -1550,  1590,  -2090,  -1800,  1350],  
+                        [-2650, -1150,  2230,  -1885,  -1800,  1590],  
+                        [-2465, -1600,  2530,  -1615,  -1800,  2230],  
+                        [-1885, -1600,  2230,  -1615,  -1800,  1930], 
+                        
+                        [1200,  -1800,  2700, 2300,  -2000,  900], 
+                        [1450,  -1300,  1350, 2050,  -1800,  900], 
+                        [1590,  -1550,  1590, 1910,  -1800,  1350],  
+                        [1375,  -1150,  2230, 2115,  -1800,  1590],  
+                        [1535,  -1600,  2530, 2385,  -1800,  2330],  
+                        [2115,  -1600,  2230, 2385,  -1800,  1930], 
+                        
+                        [-5000, -2000,  1700,  -3600,  600,  3000],  
+                        [-4650, 800,    2550,  -3950,  600,  2150],  
+                        [-4670, -2000,  1200,  -3900, -1300, 1700], 
+                        
+                        [3300,  200,    2540, 4600,  -2000,  1640],  
+                        [3550,  -200,   2720,  4350, -2000, 2540], 
+                        [3750,  360,    2200, 4150,  200,  1980],  
+                        [3600,  -1500,  1240, 4300,  -2000,  1640], 
+                        
+                        [-900,  -1400,  1350, 400, -2000, 650],  
+                        [-600,  -1850,  2690, 100, -2000, 1690], 
+                        [-700,  -1670,  1690, 200, -2000, 1350], 
+                        [-950,  -1150,  2690, 350, -1850, 1690], 
+                        [-650,  -1790,  2910, 50,  -1490,  2690],  
+                        [-850,  -910,   2690,  250,  -1150,  1690],  
+                        [-850,  -1310,  2970, 250, -910,  2690],  
+                        [-850,   -1310,  1410,  250, -910,  1690]])
+    #make sure that the obstacles are defined as small to larger values
+    obstacles_l = np.maximum(obstacles[:,0], obstacles[:,3])
+    obstacles_s = np.minimum(obstacles[:,0], obstacles[:,3])  
+    obstacles[:,0] = obstacles_s
+    obstacles[:,3] = obstacles_l
+    
+    obstacles_l = np.maximum(obstacles[:,1], obstacles[:,4])
+    obstacles_s = np.minimum(obstacles[:,1], obstacles[:,4]) 
+    obstacles[:,1] = obstacles_s
+    obstacles[:,4] = obstacles_l
+    
+    obstacles_l = np.maximum(obstacles[:,2], obstacles[:,5])
+    obstacles_s = np.minimum(obstacles[:,2], obstacles[:,5]) 
+    obstacles[:,2] = obstacles_s
+    obstacles[:,5] = obstacles_l
+    
+    obstacles = obstacles + np.array([5000, 2000, 3000, 5000, 2000, 3000])
+    obstacles = obstacles / 50 #it is wierd that this results in coordinates with decimal points.... however this is how it is described in the paper.
+    obstacles = np.round(obstacles).astype(int) #round so that it become integers.
+    
+    for obstacle in obstacles:
+        search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
+    
+    
+    pipes = {
+        'P1': {'connection': [[60,76,4], [112,68,10], [156,68,10]], 'diameter':[60,60,60], 'type': 'branchpipe'},
+        'P2': {'connection': [[60,48,5], [81,40,12]], 'diameter':[48,48], 'type': 'single'},
+        'P3': {'connection': [[60,48,5], [81,40,12]], 'diameter':[48,48], 'type': 'single'},
+        'P4': {'connection': [[88,40,12], [107,34,10]], 'diameter':[48,48], 'type': 'single'},
+        'P5': {'connection': [[88,20,12], [151,34,10]], 'diameter':[48,48], 'type': 'single'},
+        'P6': {'connection': [[118,31,19], [170,31,19], [22,1,88], [186,1,88]], 'diameter':[64,64,46,46], 'type': 'unequalbranchpipe'},
+        'P7': {'connection': [[124,31,19], [164,31,19], [63,11,100], [143,11,100]], 'diameter':[62,62,44,44], 'type': 'unequalbranchpipe'},
+        'P8': {'connection': [[130,31,19], [158,31,19], [107,6,105]], 'diameter':[44,44,44], 'type': 'branchpipe'}
+        }
 
-    # (-1000,-350,-2300),(-500,-250,-3000),(-900,-100,-2500),(-600,-250,-2800),
-    # (-1000,250,-2500),(-500,-100,-2950),(-875,-100,-2250),(-625,150,-2500),
-    
-    # (-1000,-1350,-2300),(-500,-1250,-3000),(-900,-1100,-2500),(-600,-1250,-2800),
-    # (-1000,-750,-2500),(-500,-1100,-2950),(-875,-1100,-2250),(-625,-850,-2500),
-    
-    # (400,-400,-1800),(1800,1400,-3000),
-    
-    # (2600,-400,-1800),(4000,1400,-3000),
-    
-    # (-2800,-1800,2700),(-1700,-2000,-900),(-2550,-1300,1350),(-1950,-1800,900),
-    # (-2410,-1550,1590),(-2090,-1800,1350),(-2650,-1150,2230),(-1885,-1800,1590),
-    # (-2465,-1600,2530),(-1615,-1800,2230),(-1885,-1600,2230),(-1615,-1800,1930),
-    
-    # (1200,-1800,2700),(2300,-2000,900),(1450,-1300,1350),(2050,-1800,900),
-    # (1590,-1550,1590),(1910,-1800,1350),(1375,-1150,2230),(2115,-1800,1590),
-    # (1535,-1600,2530),(2385,-1800,2330),(2115,-1600,2230),(2385,-1800,1930),
-    
-    # (-3600,-2000,1700),(-5000,600,3000),(-4650,800,2550),(-3950,600,2150)
-    # (-3900,-2000,1200),(-4670-1300,1700)
-    
-    # (3300,200,2540),(4600,-2000,1640),(3550,-200,2720),(4350,-2000,2540)
-    # (3750,360,2200),(4150,200,1980),(4300,-1500,1240),(3600,-2000,1640)
-    
-    # (-900-1400,1350),(400,-2000,650),(-600-1850,2690),(100,-2000,1690)
-    # (-700,-1670,1690),(200,-2000,1350),(-950,-1150,2690),(350,-1850,1690)
-    # (-650,-1790,2910),(50,-1490,2690),(-850,-910,2690),(250,-1150,1690)
-    # (-850,-1310,2970),(250,-910,2690),(250,-1310,1410),(-850,-910,1690)
+    plot_space_and_route(search_space, obstacles, {})
 
     
 
 if __name__ == "__main__":
     # toy_example()
-    example_dong_and_bian(case_nr=1)
+    example_jiang_etall()
+    # example_dong_and_bian(case_nr=1)
+    # example_dong_and_bian_equipment_model()

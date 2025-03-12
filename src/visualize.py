@@ -58,6 +58,11 @@ def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, 
     ax.set_xlim([0,box.shape[0]])
     ax.set_ylim([0,box.shape[1]])
     ax.set_zlim([0,box.shape[2]])
+    ax.set_box_aspect([box.shape[0],box.shape[1],box.shape[2]]) # to make the figure the size of the actual problem and keep aspect ratio.
+    
+    ax.set_xlabel('X axis')
+    ax.set_ylabel('Y axis')
+    ax.set_zlabel('Z axis')
     
     plt.show()
 
