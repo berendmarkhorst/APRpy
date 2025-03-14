@@ -5,7 +5,8 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from .objects import Pipe
 from typing import List, Tuple, Dict
 
-colors = [(0, 0, 1, 0.5), (0, 1, 0, 0.5)]
+obstacle_colors = [(0, 0, 1, 0.1), (0, 1, 0, 0.1)]
+pipe_colors = [(0, 0, 1, 1), (0, 1, 0, 1)]
 
 # https://stackoverflow.com/questions/42611342/representing-voxels-with-matplotlib
 def cuboid_data(o, size=(1,1,1)):
@@ -38,7 +39,7 @@ def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, 
     positions = obstacles[:,:3]
     sizes = obstacles[:,3:] - obstacles[:,:3]
     
-    color_obstacles = [colors[0]]*len(positions)
+    color_obstacles = [obstacle_colors[0]]*len(positions)
     
     ax = plt.figure().add_subplot(projection='3d')
     ax.set_aspect('equal')
@@ -49,9 +50,16 @@ def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, 
     for res_i in result:
         pipe = result[res_i]
         pipe = np.array(pipe)
-        positions_pipe = pipe[:,0]
-        sizes_pipe = pipe[:,1] - pipe[:,0] + 1
-        colors_pipe = [colors[1]]*len(positions_pipe)
+        pipesegments = []
+        for pipe_segment in pipe:
+            if sum(pipe_segment[0]) > sum(pipe_segment[1]):
+                pipesegments.append([pipe_segment[1],pipe_segment[0]])
+            else:
+                pipesegments.append([pipe_segment[0],pipe_segment[1]])
+        pipesegments = np.array(pipesegments)    
+        positions_pipe = pipesegments[:,0]
+        sizes_pipe = pipesegments[:,1] - pipesegments[:,0] + 1
+        colors_pipe = [pipe_colors[1]]*len(positions_pipe)
         pc_pipe = plotCubeAt(positions_pipe, sizes_pipe, colors=colors_pipe, edgecolor="k")
         ax.add_collection3d(pc_pipe)
     
