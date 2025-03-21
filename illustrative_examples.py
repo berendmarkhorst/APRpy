@@ -138,6 +138,86 @@ def example_jiang_etall(case_nr: int = 0):
     plot_space_and_route(search_space, obstacles, {})
 
     
+def example_1_min_ruy_park():
+    """
+    Illustrative example from section 6 10 cuboid obstacles....
+    Obstacle 4 was outside of the space, so the last digit of 75 in z coordinate was ignored. 
+    https://doi.org/10.1016/j.oceaneng.2022.111789
+    Returns
+    """    
+    search_space = np.ones((100, 100, 30))
+    
+    obstacles = np.array([[0,0,0,0,0,0],
+                            [32,12,0,32,12,0],
+                            [57,12,0,57,12,0],
+                            [57,27,7,57,27,7],
+                            [17,42,0,17,42,0],
+                            [57,47,0,57,47,0],
+                            [0,77,0,0,77,0],
+                            [32,72,0,32,72,0],
+                            [67,62,0,67,62,0],
+                            [52,62,7,52,62,7]])
+    
+    size = np.array([[33,38,13],
+                     [25,25,23],
+                     [30,10,13],
+                     [30,5,12],
+                     [20,25,28],
+                     [20,10,28],
+                     [23,20,13],
+                     [30,20,18],
+                     [20,25,30],
+                     [15,5,5]])
+    
+    obstacles[:,3:] += size
+
+    # preference_space = np.array([5,45,5,10,50,10]) # not well defined
+    
+    # np.hstack()
+    
+    cases = { 'case1': [(50, 0, 5), (5,45,5), (70,  95, 5)]
+              }
+    
+    result = {}
+    plot_space_and_route(search_space, obstacles, result)
+
+def example_2_min_ruy_park():
+    """
+    Illustrative example from section 6 with 4 cuboid obstacles and 4 cylindrical obstacles....
+    https://doi.org/10.1016/j.oceaneng.2022.111789
+    Returns
+    """   
+    search_space = np.ones((100, 100, 40))
+    
+    obstacles =np.array([[60,20,0,60,20,0],
+                         [20,35,0,20,35,0],
+                         [75,50,0,75,50,0],
+                         [75,0,0,75,0,0]])
+    
+    size = np.array([[40,30,40],
+                     [40,50,40],
+                     [5,20,10],
+                     [5,20,10]])
+    
+    obstacles[:,3:] += size
+
+    towers = np.array([[35,10,0,10,20],
+                       [8,17,0,8,35],
+                       [7,82,0,6,35],
+                       [88,83,0,11,25]])
+
+    # preference_space = np.array([5,45,5,10,50,10]) # not well defined
+    
+    # np.hstack()
+    
+    cases = { 'case1': [(89, 7, 5), (36,92,2), (92, 57, 2)]
+              }
+    
+    result = {}
+    plot_space_and_route(search_space, obstacles, result, towers)
+    
+    
+
 def example_dong_bian_zhao():
     """
     Illustrative example from section 4.2 with 13 cuboid obstacles....
@@ -177,6 +257,9 @@ def example_dong_and_bian(case_nr: int = 0):
     """
     Example from Dong and Bian used to illustrate the model.
     https://ieeexplore.ieee.org/abstract/document/9172005
+    
+    Illustrative example from section 4.2 with 13 cuboid obstacles....
+    https://doi.org/10.1016/j.oceaneng.2022.111789
     :return:
     """
     # Make the 3D binary array
@@ -325,6 +408,6 @@ if __name__ == "__main__":
     # example_jiang_etall()
     # example_dong_and_bian(case_nr=1)
     # example_dong_and_bian_equipment_model()
-    example_dong_bian_zhao()
+    example_2_min_ruy_park()
     
     

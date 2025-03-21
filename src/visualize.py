@@ -62,8 +62,29 @@ def plotCubeAt(positions,sizes=None,colors=None, **kwargs):
     return Poly3DCollection(np.concatenate(g),  
                             facecolors=np.repeat(colors,6, axis=0), **kwargs)
 
+# def cylinder(towers,colors=None):
+#     """
+#     https://stackoverflow.com/questions/76768149/how-can-i-draw-a-matplotlib-3d-bar-but-not-with-square-columns-instead-with-cyli"
+#     """
+#     if not isinstance(colors,(list,np.ndarray)): colors=["C0"]*len(towers)
+#     g = []
+#     for tower in towers:
+#         x,y,z,r,z = tower
+#         phi = np.linspace(0, 360, 200) / 180.0 * np.pi
+#         z = np.linspace(0, z, z)
+#         PHI, Z = np.meshgrid(phi, z)
+#         CP = r * np.cos(PHI) + x
+#         SP = r * np.sin(PHI) + y
+#         XYZ = np.dstack([CP, SP, Z])
+#         verts = np.stack(
+#             [XYZ[:-1, :-1], XYZ[:-1, 1:], XYZ[1:, 1:], XYZ[1:, :-1]], axis=-2).reshape(-1, 4, 3)
+#         g.append(Poly3DCollection(verts, facecolor=colors, edgecolor="none"))
+        
+#     return g
 
-def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, List[Tuple[int, int, int]]]):
+
+
+def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, List[Tuple[int, int, int]]], towers=None):
     """
     Visualize the search space, obstacles, and the route of the APR-instance.
     """
@@ -77,6 +98,11 @@ def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, 
     
     pc_obstacles = plotCubeAt(positions, sizes, colors=color_obstacles, edgecolor="k")
     ax.add_collection3d(pc_obstacles)
+    
+    # color_obstacles = [obstacle_colors[0]]*len(towers)
+    # cyl_obstacles = cylinder(towers, color_obstacles)
+    # for cyl in cyl_obstacles:
+    #     ax.add_collection3d(cyl)
 
     for res_i in result:
         pipe = result[res_i]
