@@ -8,6 +8,37 @@ from typing import List, Tuple, Dict
 obstacle_colors = [(0, 0, 1, 0.1), (0, 1, 0, 0.1)]
 pipe_colors = [(0, 0, 1, 1), (0, 1, 0, 1)]
 
+def fix_obstacle_ordering(obstacle):
+    """
+    obstacle with coordinates x, y ,z, x2, y2, z2
+    x y z should all be smaller then or equal to x2 y2 z2
+    This function fixes the order so that is guaranteed. 
+    
+    Parameters
+    ----------
+    obstacle : np array of size 6
+
+    Returns
+    -------
+    obstacle : np.array of size 6
+
+    """
+    obstacles_l = max(obstacle[0], obstacle[3])
+    obstacles_s = min(obstacle[0], obstacle[3])  
+    obstacle[0] = obstacles_s
+    obstacle[3] = obstacles_l
+    
+    obstacles_l = max(obstacle[1], obstacle[4])
+    obstacles_s = min(obstacle[1], obstacle[4]) 
+    obstacle[1] = obstacles_s
+    obstacle[4] = obstacles_l
+    
+    obstacles_l = max(obstacle[2], obstacle[5])
+    obstacles_s = min(obstacle[2], obstacle[5]) 
+    obstacle[2] = obstacles_s
+    obstacle[5] = obstacles_l
+    return obstacle
+
 # https://stackoverflow.com/questions/42611342/representing-voxels-with-matplotlib
 def cuboid_data(o, size=(1,1,1)):
     X = [[[0, 1, 0], [0, 0, 0], [1, 0, 0], [1, 1, 0]],
@@ -53,9 +84,9 @@ def plot_space_and_route(box: np.array, obstacles: np.array, result: Dict[Pipe, 
         pipesegments = []
         for pipe_segment in pipe:
             if sum(pipe_segment[0]) > sum(pipe_segment[1]):
-                pipesegments.append([pipe_segment[1],pipe_segment[0]])
+                pipesegments.append([pipe_segment[1],pipe_segment[0]]) # fix the ordering. 
             else:
-                pipesegments.append([pipe_segment[0],pipe_segment[1]])
+                pipesegments.append([pipe_segment[0],pipe_segment[1]]) # save the already correct ordering.
         pipesegments = np.array(pipesegments)    
         positions_pipe = pipesegments[:,0]
         sizes_pipe = pipesegments[:,1] - pipesegments[:,0] + 1
