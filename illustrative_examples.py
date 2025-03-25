@@ -200,12 +200,22 @@ def example_2_min_ruy_park():
                      [5,20,10]])
     
     obstacles[:,3:] += size
-
+    
+    for obstacle in obstacles:
+        search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
+                
+    #1 tower = [center_x, center_y, start_z, radius, height_z]
     towers = np.array([[35,10,0,10,20],
                        [8,17,0,8,35],
                        [7,82,0,6,35],
                        [88,83,0,11,25]])
-
+    
+    for tower in towers:
+        x, y, z = np.indices(search_space.shape)
+        center_x, center_y, start_z, radius, height_z = tower
+        distance = np.sqrt((x - center_x)**2 + (y - center_y)**2)
+        mask = (distance <= radius) & (z >= start_z) & (z <= start_z + height_z)
+        search_space[mask] = 0
     # preference_space = np.array([5,45,5,10,50,10]) # not well defined
     
     # np.hstack()
