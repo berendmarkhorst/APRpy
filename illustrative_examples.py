@@ -4,6 +4,7 @@ from src.mathematical_model import *
 from src.visualize import *
 import numpy as np
 
+
 def solve_pipe_problem(search_space, obstacles, result):
     original_search_space = search_space.copy()
 
@@ -224,6 +225,7 @@ def example_2_min_ruy_park():
               }
     
     result = {}
+    # scatterplot_quick_check(search_space)
     plot_space_and_route(search_space, obstacles, result, towers)
     
     
@@ -401,10 +403,10 @@ def example_dong_and_bian_equipment_model():
     
     pipes = {
         'P1': {'connection': [[60,76,4], [112,68,10], [156,68,10]], 'diameter':[60,60,60], 'type': 'branchpipe'},
-        'P2': {'connection': [[60,48,5], [81,40,12]], 'diameter':[48,48], 'type': 'single'},
-        'P3': {'connection': [[60,48,5], [81,40,12]], 'diameter':[48,48], 'type': 'single'},
-        'P4': {'connection': [[88,40,12], [107,34,10]], 'diameter':[48,48], 'type': 'single'},
-        'P5': {'connection': [[88,20,12], [151,34,10]], 'diameter':[48,48], 'type': 'single'},
+        'P2': {'connection': [(60,48,5), (81,40,12)], 'diameter':[48,48], 'type': 'single'},
+        'P3': {'connection': [(60,48,5), (81,40,12)], 'diameter':[48,48], 'type': 'single'},
+        'P4': {'connection': [(88,40,12), (107,34,10)], 'diameter':[48,48], 'type': 'single'},
+        'P5': {'connection': [(88,20,12), (151,34,10)], 'diameter':[48,48], 'type': 'single'},
         'P6': {'connection': [[118,31,19], [170,31,19], [22,1,88], [186,1,88]], 'diameter':[64,64,46,46], 'type': 'unequalbranchpipe'},
         'P7': {'connection': [[124,31,19], [164,31,19], [63,11,100], [143,11,100]], 'diameter':[62,62,44,44], 'type': 'unequalbranchpipe'},
         'P8': {'connection': [[130,31,19], [158,31,19], [107,6,105]], 'diameter':[44,44,44], 'type': 'branchpipe'}
@@ -412,12 +414,223 @@ def example_dong_and_bian_equipment_model():
 
     plot_space_and_route(search_space, obstacles, {})
 
+def example_dong_lin():
+    """
+    Illustrative example from table 1 with 10 cuboid obstacles. almost the same as Dong and Bian only the last obstacle is different and 4 obstacles are not included. 
+    https://doi.org/10.3233/ISP-160123
+    Returns
+    """    
+    size = 20 # = 100/5 because search space is made smaller.  
+    search_space = np.ones((size, size, size))
+    
+    obstacles = np.array([[-45,-50,20,-30,20,0],
+                            [0,-50,30,50,10,10],
+                            [0,-50,-10,50,50,-30],
+                            [-40,-50,50,-20,50,30],
+                            [-50,-50,-20,-20,50,-30],
+                            [-20,-10,-40,0,0,20],
+                            [-50,-50,-20,-30,-20,0],
+                            [-30,-50,-50,10,30,-40],
+                            [-20,-50,-40,0,-40,20],
+                            [-10,-30,-10,40,-15,10]])+50
+    obstacles = obstacles / 5 # 
+    
+    for obstacle in obstacles:
+        obstacle = fix_obstacle_ordering(obstacle)
+    
+    cases = {'case1': [(15,0,19), (15,10,0)],
+             'case2': [(15,1,19), (15,0,19), 
+                       (15,0,19), (15,10,0)],#case 2 with 2 pipes
+             'case3': [[0,0,19], [0,16,0], [19,14,10], [12,4,0], [0,0,19]] #case 3 with branching
+             }
+
+    
+    result = {}
+    plot_space_and_route(search_space, obstacles, result)
+
+def example_1_yan_yang_lin():
+    """
+    Illustrative example from section 4.1 with 7 cuboid obstacles.
+    https://doi.org/10.1016/j.oceaneng.2024.117961
+    Returns
+    """   
+    size = 50 
+    search_space = np.ones((size, size, size))
+    
+    obstacles = np.array([[6,0,0,16,5,50],
+                          [21,0,0,30,5,4],
+                          [42,10,0,50,18,12],
+                          [42,26,0,50,42,12],
+                          [20,42,0,30,50,50],
+                          [0,15,0,9,32,20],
+                          [14,14,0,34,35,21]])
+    
+    for obstacle in obstacles:
+        obstacle = fix_obstacle_ordering(obstacle)
+        
+    cases = { 'case1': [(0,0,0),(50,50,50)]
+            }
+    
+    result = {}
+    plot_space_and_route(search_space, obstacles, result)
+
+
+def example_1scaled_yan_yang_lin():
+    """
+    Illustrative example from section 4.1 with 7 cuboid obstacles but now scaled to 100 times larger space.
+    Allocating memory for this is problematic...?
+    option:
+    class Sparse3DArray:
+        def __init__(self):
+            self.elements = {}
+    
+        def set_value(self, x, y, z, value):
+            self.elements[(x, y, z)] = value
+    
+        def get_value(self, x, y, z):
+            return self.elements.get((x, y, z), False)
+    
+    # Create a sparse 3D array
+    sparse_array = Sparse3DArray()
+    
+    # Example of setting a value
+    sparse_array.set_value(0, 0, 0, True)
+    
+    # Example of getting a value
+    print(sparse_array.get_value(0, 0, 0))  # Output: True
+    print(sparse_array.get_value(1, 1, 1))  # Output: False
+
+    https://doi.org/10.1016/j.oceaneng.2024.117961
+    Returns
+    """   
+    size = 50*100
+    shape = (size, size, size)
+    # search_space = lil_matrix((5000,5000,5000), dtype=bool)
+    
+    obstacles = np.array([[6,0,0,16,5,50],
+                          [21,0,0,30,5,4],
+                          [42,10,0,50,18,12],
+                          [42,26,0,50,42,12],
+                          [20,42,0,30,50,50],
+                          [0,15,0,9,32,20],
+                          [14,14,0,34,35,21]])
+    
+    for obstacle in obstacles:
+        obstacle = fix_obstacle_ordering(obstacle)
+    obstacles = obstacles*100
+        
+    cases = { 'case1': [(0,0,0),(5000,5000,5000)]
+            }
+
+    result = {}
+    box = {}
+    plot_space_and_route(box, obstacles, result)
+
+
+def example_2_yan_yang_lin():
+    """
+    Illustrative example from section 4.2 with 6 cuboid obstacles.
+    x,y,z axis projection / visualization are rotated in figures in the paper.
+    https://doi.org/10.1016/j.oceaneng.2024.117961
+    Returns
+    """   
+    size = 50 
+    search_space = np.ones((size, size, size))
+    
+    obstacles = np.array([[5,1,5,15,50,15],
+                          [1,27,29,30,42,44],
+                          [1,1,35,21,20,50],
+                          [30,5,1,45,40,20],
+                          [32,1,25,47,20,40],
+                          [32,1,40,47,8,50]])
+    
+    for obstacle in obstacles:
+        obstacle = fix_obstacle_ordering(obstacle)
+        
+    cases = { 'case1': [[2,2,2],[39,12,48],[45,46,15],[10,44,46]], #case 2 Q1 with branching
+              'case2': [[2,2,2],[10,23,48],[40,23,30],[35,46,18]] #case 2 Q2 with branching
+            }
+    
+    result = {}
+    plot_space_and_route(search_space, obstacles, result)
+
+
+def example_3_yan_yang_lin():
+    """
+    Illustrative example from section 4.3 with 16 cuboid obstacles.
+    https://doi.org/10.1016/j.oceaneng.2024.117961
+    Returns
+    """   
+    # search_space = np.ones((10000, 12000, 6000))
+    
+    obstacles = np.array([[3300,4943,1875,3700,2003,3164],
+                            [3410,4450,3165,3590,4900,3290],
+                            [4332,4511,550,6348,2495,2700],
+                            [6348,3490,790,6435,3510,810],
+                            [5654,2306,1754,5674,2495,1766],
+                            [5175,2050,1475,4925,588,1725],
+                            [5900,1862,1400,5750,1732,1550],
+                            [6992,3608,1093,7208,3392,1438],
+                            [3810,200,1000,4800,1000,1498],
+                            [4805,8120,115,5925,7680,539],
+                            [3688,9095,131,4038,8895,331],
+                            [4333,7468,786,4543,7308,936],
+                            [4878,7463,686,5088,7303,836],
+                            [3639,9682,1920,6215,9425,2387],
+                            [3120,8450,1550,3380,8100,2150],
+                            [3900,9490,3510,6589,9070,4020]])
+    
+    for obstacle in obstacles:
+        obstacle = fix_obstacle_ordering(obstacle)
+        
+    pipes = {
+        'P1': {'connection':[(4250, 3500, 730), (3650, 7400, 730)], 'diameter':[60,60], 'type': 'single'},
+        'P2': {'connection':[(3500, 4530, 3164), (3250, 2260, 5347)], 'diameter':[30,30], 'type': 'single'},
+        'P3': {'connection':[(4305, 1850, 5290), (4305, 700, 1500)], 'diameter':[10,10], 'type': 'single'},
+        'P4': {'connection':[(4405, 1850, 5290), (4405, 700, 1500)], 'diameter':[10,10], 'type': 'single'},
+        'P5': {'connection':[(4505, 1850, 5290), (4505, 700, 1500)], 'diameter':[10,10], 'type': 'single'},
+        'P6': {'connection':[(4605, 1850, 5290), (4605, 700, 1500)], 'diameter':[10,10], 'type': 'single'},
+        'P7': {'connection':[[3500, 2416, 1874], [3250, 2410, 5287],[3805, 700, 1450]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P8': {'connection':[[5350, 2445, 730], [461, 2050, 1600],[629, 2095, 1350]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P9': {'connection':[[4950, 7900, 540], [4250, 9804, 5820],[3850, 11218, 4318], [3430, 10812, 4200]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P10': {'connection':[(4804, 7900, 216), (4012, 8894, 216)], 'diameter':[30,30], 'type': 'single'},
+        'P11': {'connection':[[4804, 7900, 440], [1750, 3500, 730],[3850, 8894, 230], [4331, 3500, 730]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P12': {'connection':[[3850, 9550, 2420], [7000, 5705, 5350],[3620, 9800, 2974], [3850, 9700, 1178]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P13': {'connection':[(4220, 9550, 2436), (3450, 6200, 5631)], 'diameter':[30,30], 'type': 'single'},
+        'P14': {'connection':[(6007, 9550, 2439), (3450, 6000, 5535)], 'diameter':[30,30], 'type': 'single'},
+        'P15': {'connection':[(6007, 9568, 1915), (4105, 700, 1500)], 'diameter':[30,30], 'type': 'single'},
+        'P16': {'connection':[(3850, 9550, 1915), (5830, 9550, 300)], 'diameter':[30,30], 'type': 'single'},
+        'P17': {'connection':[(4297, 4039, 660), (2427, 4120, 605)], 'diameter':[30,30], 'type': 'single'},
+        'P18': {'connection':[(6440, 3500, 800), (7100, 3500, 1443)], 'diameter':[10,10], 'type': 'single'},
+        'P19': {'connection':[(4297, 4042, 2446), (2516, 5005, 650)], 'diameter':[10,10], 'type': 'single'},
+        'P20': {'connection':[(4297, 4039, 1780), (2520, 4900, 650)], 'diameter':[10,10], 'type': 'single'},
+        'P21': {'connection':[(7100, 3500, 1091), (596, 1850, 150)], 'diameter':[10,10], 'type': 'single'},
+        'P22': {'connection':[(1210, 1979,950), (5150, 2494, 690)], 'diameter':[20,20], 'type': 'single'},
+        'P23': {'connection':[(5664, 2311, 1760), (5633, 750, 300)], 'diameter':[10,10], 'type': 'single'},
+        'P24': {'connection':[(3479, 4821, 3260), (4036, 8581, 1173)], 'diameter':[30,30], 'type': 'single'},
+        'P25': {'connection':[[3300, 10884, 4180], [2450, 4233, 1574],[4765, 4512, 730]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P26': {'connection':[[5501, 7550, 600], [3775, 8950, 333],[6400, 4720, 5450], [1744, 6500, 4031]], 'diameter':[30,30], 'type':'branchpipe'},
+        'P27': {'connection':[(8250, 6635, 2350), (765, 6600, 2350)], 'diameter':[30,30], 'type': 'single'},
+        'P28': {'connection':[(8250, 6604, 1497), (2153, 6550, 2232)], 'diameter':[30,30], 'type': 'single'},
+        'P29': {'connection':[(7100, 7500, 4350), (7174, 4378, 472)], 'diameter':[20,20], 'type': 'single'}
+    }
+    
+    result = {}
+    box = {}
+    plot_space_and_route(box, obstacles, result)
 
 if __name__ == "__main__":
     # toy_example()
     # example_jiang_etall()
     # example_dong_and_bian(case_nr=1)
     # example_dong_and_bian_equipment_model()
-    example_2_min_ruy_park()
+    # example_1_min_ruy_park()
+    # example_2_min_ruy_park()
+    # example_dong_lin()
+    # example_1_yan_yang_lin()
+    # example_1scaled_yan_yang_lin()
+    # example_2_yan_yang_lin()
+    example_3_yan_yang_lin()
+
     
     
