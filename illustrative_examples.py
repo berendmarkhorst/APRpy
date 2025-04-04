@@ -92,25 +92,17 @@ def example_jiang_etall(case_nr: int = 0):
                          [1,26,1,8,30,40],
                          [16,26,1,34,30,40],
                          [1,1,12,24,40,16],
-                         [16,1,26,40,40,30]])
+                         [16,1,26,40,40,30]]) - 1 # @ Roy: deze truc hebben we net besproken!
 
     for obstacle in obstacles:
         search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
     
-    original_search_space = search_space.copy()
-       
-    # Apply space modeling
-    search_space = step1(search_space)
-       
-    # Convert binary 3D array to graph
-    graph = step3(search_space, original_search_space)
-    
     #todo: direction of endpoints = X,X?
     cases = {'case1': [(20,1,1), (20,40,40)], # table 2
-             
-             'case2': [(20, 1, 1), (20, 40, 30), 
+
+             'case2': [(20, 1, 1), (20, 40, 30),
                        (20, 1, 30), (20, 40, 1)], #table3 multiple pipes
-             
+
              'case3': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40)], #table4 branch piping
 
              'case4': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40), #table 5, branch piping
@@ -119,6 +111,16 @@ def example_jiang_etall(case_nr: int = 0):
              }
     
     pipe_starts_ends = cases['case'+str(case_nr+1)]
+    pipe_starts_ends = [(x-1, y-1 , z-1) for x, y, z in pipe_starts_ends]
+
+    original_search_space = search_space.copy()
+
+    # Apply space modeling
+    search_space = step1(search_space, pipe_starts_ends)
+
+    # Convert binary 3D array to graph
+    graph = step3(search_space, original_search_space)
+
     all_connected_components = []
     pipeid = 1
     for start, end in zip(pipe_starts_ends[0::2], pipe_starts_ends[1::2]):
@@ -128,15 +130,15 @@ def example_jiang_etall(case_nr: int = 0):
         all_connected_components.append(connected_components_i)
         pipeid += 1
        
-    # apr = AutomatedPipeRouting(all_connected_components, graph, False) # 20,1,1 is not in graph?
+    apr = AutomatedPipeRouting(all_connected_components, graph, False) # 20,1,1 is not in graph?
        
-    # apr = step4(apr, 1, 10)
+    apr = step4(apr, 1, 10)
        
-    # apr = simplify_graph(apr)
-    # model, x, y1, y2, z, f, b = build_model(apr, 3600)
-    # result = run_model(model, apr, x, b)
+    apr = simplify_graph(apr)
+    model, x, y1, y2, z, f, b = build_model(apr, 3600)
+    result = run_model(model, apr, x, b)
        
-    plot_space_and_route(search_space, obstacles, {})
+    plot_space_and_route(search_space, obstacles, result)
 
     
 def example_1_min_ruy_park():
@@ -621,7 +623,7 @@ def example_3_yan_yang_lin():
 
 if __name__ == "__main__":
     # toy_example()
-    # example_jiang_etall()
+    example_jiang_etall()
     # example_dong_and_bian(case_nr=1)
     # example_dong_and_bian_equipment_model()
     # example_1_min_ruy_park()
@@ -630,7 +632,7 @@ if __name__ == "__main__":
     # example_1_yan_yang_lin()
     # example_1scaled_yan_yang_lin()
     # example_2_yan_yang_lin()
-    example_3_yan_yang_lin()
+    # example_3_yan_yang_lin()
 
     
     

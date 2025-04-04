@@ -16,7 +16,7 @@ kernel = np.array([[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
                    [[0, 0, 0], [0, 1, 0], [0, 0, 0]]])
 
 
-def step1(voxelarray):
+def step1(voxelarray, terminals):
     """
     Basic space modeling: remove voxels with 6 neighbors.
     :param voxelarray: 3D binary array representing a room.
@@ -27,6 +27,14 @@ def step1(voxelarray):
 
     # Set elements with 6 True neighbors to False
     voxelarray[(neighbor_count == 6) & (voxelarray == True)] = False
+
+    # Set elements in terminals to True in a vectorized way
+    if len(terminals) > 0:
+        # Convert list of tuples to three arrays (x, y, z)
+        x, y, z = zip(*terminals)
+
+        # Use advanced indexing to set values to True
+        voxelarray[x, y, z] = True
 
     return voxelarray
 
