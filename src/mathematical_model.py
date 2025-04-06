@@ -252,21 +252,3 @@ def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarTyp
     nr_bends = sum(model.variableValue(b[v]) for v in apr.nodes)
 
     return routes, pipe_length, nr_bends
-
-
-# def toy_example():
-#     """
-#     Toy example used to debug and illustrate the model.
-#     """
-#     pipe = Pipe(1, 1)
-#     cc = ConnectedComponents(1, [1, 3], pipe, [(1, 2), (2, 3)])
-#     graph = nx.Graph()
-#     edges = [(1, 2), (2, 3)]
-#     graph.add_edges_from(edges)
-#     for edge in graph.edges():
-#         graph.edges[edge]["weight"] = 1
-#     apr = AutomatedPipeRouting([cc], graph, False)
-#
-#     model, x, *_ = build_model(apr, 3600)
-#     result = run_model(model, apr, x)
-#     print(result)

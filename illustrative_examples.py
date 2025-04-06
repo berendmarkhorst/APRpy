@@ -624,6 +624,25 @@ def example_3_yan_yang_lin():
 
 
 def main(input_file: str, output_file: str, plot_result: bool = False):
+    """
+    Main function to parse an Automated Pipe Routing (APR) instance from a JSON file, build and solve the mathematical model,
+    and optionally plot the resulting pipe routes.
+
+    This function performs the following steps:
+    1. Parses the APR instance from the specified JSON file using the `parse_apr_from_json` function.
+    2. Measures the time taken to build the APR instance.
+    3. Builds the mathematical model for the APR instance using the `build_model` function.
+    4. Runs the mathematical model to find the optimal pipe routes using the `run_model` function.
+    5. Measures the time taken to solve the mathematical model.
+    6. Stores the results, including the pipe routes, total length of pipes, and number of bends, in the APR object.
+    7. Saves the APR object to a pickle file.
+    8. Prints the results, including the total time taken, total length of pipes, and number of bends.
+    9. Optionally plots the search space, obstacles, and resulting pipe routes if `plot_result` is set to True.
+
+    :param input_file: Path to the input JSON file containing the APR instance.
+    :param output_file: Path to the output pickle file where the APR object will be saved.
+    :param plot_result: Boolean flag indicating whether to plot the resulting pipe routes. Default is False.
+    """
     apr = parse_apr_from_json(input_file)
 
     # Start measuring the time

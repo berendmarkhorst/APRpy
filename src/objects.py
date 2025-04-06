@@ -7,6 +7,12 @@ class Pipe:
     """
 
     def __init__(self, id: int, costs: float):
+        """
+        Initialize a Pipe object.
+
+        :param id: Unique identifier for the pipe.
+        :param costs: Cost associated with the pipe.
+        """
         self.id = id
         self.costs = costs
 
@@ -21,10 +27,19 @@ class ConnectedComponents:
 
     def __init__(self, id: int, terminals: List[Tuple[int, int, int]], pipe: Pipe,
                  edges: List[Tuple[(Tuple[int, int, int], Tuple[int, int, int])]]):
+        """
+        Initialize a ConnectedComponents object.
+
+        :param id: Unique identifier for the connected component.
+        :param terminals: List of terminals represented as tuples.
+        :param pipe: Pipe object associated with the connected component.
+        :param edges: List of edges represented as tuples of terminal pairs.
+        """
         self.id = id
         self.terminals = terminals
         self.pipe = pipe
         self.edges = edges
+        # Set of nodes that can be used to connect the terminals
         self.allowed_nodes = set([u for u, v in edges] + [v for u, v in edges])
         self.arcs = edges + [(v, u) for u, v in edges]
         self.root = terminals[0]
@@ -41,10 +56,10 @@ class AutomatedPipeRouting:
     def __init__(self, connected_components: ConnectedComponents, graph: nx.Graph, name: str = "APR instance"):
         """
         Initialize the APR object.
-        :param connected_components: connected components object.
-        :param graph: networkx object.
-        :param minimize_bends: boolean indicating if we want to minimize the number of bends (or not).
-        :param name: optional variable indicating the name of the APR instance.
+
+        :param connected_components: ConnectedComponents object.
+        :param graph: NetworkX graph object.
+        :param name: Optional variable indicating the name of the APR instance.
         """
         self.graph = graph
         self.nodes = list(graph.nodes())
@@ -57,6 +72,9 @@ class AutomatedPipeRouting:
     def add_connected_components(self, connected_components: ConnectedComponents):
         """
         Return the connected components, the union of their pipes, and the steiner points per pipe.
+
+        :param connected_components: ConnectedComponents object.
+        :return: Tuple containing connected components, all pipes, and steiner points per pipe.
         """
 
         # Collect all pipes used to cover the connected_components.
