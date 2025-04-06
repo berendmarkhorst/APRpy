@@ -136,7 +136,6 @@ def add_directed_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting) ->
                     if np.sum(np.array(np.array(n1) != np.array(n2))) >= 2:
                         model.addConstr(y1[p.id, (n1, v)] + y1[p.id, (v, n2)] - 1 <= b[v])
                         model.addConstr(y1[p.id, (n2, v)] + y1[p.id, (v, n1)] - 1 <= b[v])
-                        # pass
 
     return model, x, y1, y2, z, b
 
@@ -204,11 +203,11 @@ def add_flow_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting, z: hp.
     return model, f
 
 
-def build_model(apr: AutomatedPipeRouting, time_limit: float, logfile: str = "") -> Tuple[hp.HighsModel, float]:
+def build_model(apr: AutomatedPipeRouting, time_limit: float = 30, logfile: str = "") -> Tuple[hp.HighsModel, float]:
     """
     Returns the deterministic directed model.
     :param apr: AutomatedPipeRouting-object.
-    :param time_limit: time limit in seconds for the HiGHS model.
+    :param time_limit: time limit in seconds for the HiGHS model. Default is 30 seconds.
     :param logfile: path to logfile.
     :return: HiGHS model.
     """
@@ -233,13 +232,13 @@ def build_model(apr: AutomatedPipeRouting, time_limit: float, logfile: str = "")
     return model, x, y1, y2, z, f, b
 
 
-def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarType, b: hp.HighsVarType) -> Dict[Pipe, List[Tuple[int, int, int]]]:
+def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarType, b: hp.HighsVarType) -> Tuple[Dict[Pipe, List[Tuple[int, int, int]]], float, float]:
     """
     Solves the model and returns the result.
     :param model: highspy model.
     :param apr: AutomatedPipeRouting-object.
     :param x: highspy variable.
-    :return: dictionary with pipes and list of selected edges.
+    :return: dictionary with pipes and list of selected edges, length of the route and total number of bends.
     """
     logging.info(f"Started with running the model...")
 
@@ -248,7 +247,11 @@ def run_model(model: hp.HighsModel, apr: AutomatedPipeRouting, x: hp.HighsVarTyp
 
     logging.info(f"Runtime: {model.getRunTime():.2f} seconds")
 
-    return {p: [e for e in apr.edges if model.variableValue(x[p.id, e]) > 0.5] for p in apr.pipes}
+    routes = {p: [e for e in apr.edges if model.variableValue(x[p.id, e]) > 0.5] for p in apr.pipes}
+    pipe_length = sum(np.sum(np.abs(np.array(e[0]) - np.array(e[1]))) for p in apr.pipes for e in routes[p])
+    nr_bends = sum(model.variableValue(b[v]) for v in apr.nodes)
+
+    return routes, pipe_length, nr_bends
 
 
 # def toy_example():

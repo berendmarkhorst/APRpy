@@ -38,8 +38,7 @@ class AutomatedPipeRouting:
     This is the main object containing all necessary information for an APR problem.
     """
 
-    def __init__(self, connected_components: ConnectedComponents, graph: nx.Graph,
-                 minimize_bends: bool, name: str = "APR instance"):
+    def __init__(self, connected_components: ConnectedComponents, graph: nx.Graph, name: str = "APR instance"):
         """
         Initialize the APR object.
         :param connected_components: connected components object.
@@ -52,7 +51,6 @@ class AutomatedPipeRouting:
         self.edges = list(graph.edges())
         self.arcs = list(self.graph.edges()) + [(v, u) for (u, v) in self.graph.edges()]
         self.connected_components, self.pipes, self.steiner_points_per_pipe = self.add_connected_components(connected_components)
-        self.minimize_bends = minimize_bends
         self.name = name
         self.terminal_list = [cc.id for cc in self.connected_components]
 

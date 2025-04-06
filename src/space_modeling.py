@@ -18,7 +18,7 @@ kernel = np.array([[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
 
 def step1(voxelarray, terminals):
     """
-    Basic space modeling: remove voxels with 6 neighbors.
+    Basic space modeling: remove voxels with 6 neighbors, except for terminals.
     :param voxelarray: 3D binary array representing a room.
     :return: 3D binary array.
     """
@@ -92,7 +92,7 @@ def step3(voxelarray, original_voxelarray) -> nx.Graph:
                         continue
                     node1 = (int(x1), int(y), int(z))
                     node2 = (int(x2), int(y), int(z))
-                    weight = x2 - x1  # Unit steps, so difference is the Euclidean distance.
+                    weight = int(x2 - x1)  # Unit steps, so difference is the Euclidean distance.
                     graph.add_edge(node1, node2, weight=weight)
 
     # Process positive y-direction: loop over all (x, z) slices.
@@ -106,7 +106,7 @@ def step3(voxelarray, original_voxelarray) -> nx.Graph:
                         continue
                     node1 = (int(x), int(y1), int(z))
                     node2 = (int(x), int(y2), int(z))
-                    weight = y2 - y1
+                    weight = int(y2 - y1)
                     graph.add_edge(node1, node2, weight=weight)
 
     # Process positive z-direction: loop over all (x, y) slices.
@@ -120,7 +120,7 @@ def step3(voxelarray, original_voxelarray) -> nx.Graph:
                         continue
                     node1 = (int(x), int(y), int(z1))
                     node2 = (int(x), int(y), int(z2))
-                    weight = z2 - z1
+                    weight = int(z2 - z1)
                     graph.add_edge(node1, node2, weight=weight)
 
     duration = time.time() - start
@@ -221,7 +221,7 @@ def get_intermediate_steps(node, neighbor):
 
     return steps
 
-def step4(apr: AutomatedPipeRouting, k: float, bend_penalty: float):
+def step4(apr: AutomatedPipeRouting):
     """
     Reduce the graph heuristically.
     :param apr: AutomatedPipeRouting object.
@@ -231,28 +231,42 @@ def step4(apr: AutomatedPipeRouting, k: float, bend_penalty: float):
     start = time.time()
 
     original_graph = apr.graph.copy()
+    original_nr_nodes = apr.graph.number_of_nodes()
+    original_nr_edges = apr.graph.number_of_edges()
 
-    nodes_to_be_kept = set(t for cc in apr.connected_components for t in cc.terminals)
+    terminal_set = set(t for cc in apr.connected_components for t in cc.terminals)
+    nodes_to_be_kept = terminal_set
+
+    # Sort the apr connected components by the pipe id, so we can prevent overlapping solutions with different pipes.
+    apr.connected_components = sorted(apr.connected_components, key=lambda cc: cc.pipe.id)
+
+    # We use the current pipe to track where we are with connected components.
+    current_pipe = apr.connected_components[0].pipe
+
+    # We store per pipe the nodes we would like to keep
+    nodes_to_be_kept_current_pipe = set()
 
     for cc in apr.connected_components:
+
+        if cc.pipe != current_pipe:
+            # Update the current pipe id
+            current_pipe = cc.pipe
+
+            remove_nodes = nodes_to_be_kept_current_pipe - terminal_set
+
+            apr.graph.remove_nodes_from(remove_nodes)
+
+            nodes_to_be_kept_current_pipe = set()
+
         for t1 in cc.terminals:
             for t2 in cc.terminals:
                 if t1 != t2:
-                    for _ in range(k):
-                        # path = a_star_minimize_bends(apr.graph, t1, t2, bend_penalty=bend_penalty)
-                        path = nx.astar_path(apr.graph, t1, t2, weight='weight')
+                    path = nx.astar_path(apr.graph, t1, t2, weight='weight')
 
-                        # Make edges from path
-                        edges = [(path[i], path[i + 1]) for i in range(len(path) - 1)]
-                        for e in edges:
-                            apr.graph.edges[e]['weight'] *= 100
+                    nodes_to_be_kept_current_pipe.update(path)
+                    nodes_to_be_kept.update(path)
 
-                        nodes_to_be_kept.update(path)
-
-        # Reset the weights
-        for edge in apr.graph.edges:
-            apr.graph.edges[edge]['weight'] = manhattan_distance1(edge[0], edge[1])
-
+    apr.graph = original_graph
     remove_nodes = set(apr.graph.nodes) - nodes_to_be_kept
 
     # Remove nodes from apr.graph that are not in nodes
@@ -269,8 +283,8 @@ def step4(apr: AutomatedPipeRouting, k: float, bend_penalty: float):
         cc.arcs = cc.edges + [(v, u) for u, v in cc.edges]
 
     duration = time.time() - start
-    logging.info(f"Reduced graph from {len(original_graph.nodes)} to {len(apr.graph.nodes)} nodes in {duration:.2f} seconds.")
-    logging.info(f"Reduced graph from {len(original_graph.edges)} to {len(apr.graph.edges)} edges in {duration:.2f} seconds.")
+    logging.info(f"Reduced graph from {original_nr_nodes} to {len(apr.graph.nodes)} nodes in {duration:.2f} seconds.")
+    logging.info(f"Reduced graph from {original_nr_edges} to {len(apr.graph.edges)} edges in {duration:.2f} seconds.")
 
     return apr
 

@@ -2,7 +2,9 @@ from src.space_modeling import *
 from src.objects import *
 from src.mathematical_model import *
 from src.visualize import *
+from src.parser import parse_apr_from_json
 import numpy as np
+import pickle
 
 
 def solve_pipe_problem(search_space, obstacles, result):
@@ -98,20 +100,20 @@ def example_jiang_etall(case_nr: int = 0):
         search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
     
     #todo: direction of endpoints = X,X?
-    cases = {'case1': [(20,1,1), (20,40,40)], # table 2
+    cases = {'case1': [[(20,1,1), (20,40,40)]], # table 2
 
-             'case2': [(20, 1, 1), (20, 40, 30),
-                       (20, 1, 30), (20, 40, 1)], #table3 multiple pipes
+             'case2': [[(20, 1, 1), (20, 40, 30)],
+                       [(20, 1, 30), (20, 40, 1)]], #table3 multiple pipes
 
              'case3': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40)], #table4 branch piping
 
-             'case4': [(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40), #table 5, branch piping
-                       (20,1,30),(40,20,1)] #table5 the single Pipe
+             'case4': [[(20, 1, 1), (40, 20, 30), (20, 40, 20), (1, 40, 40), #table 5, branch piping
+                       (20,1,30), (40,20,1)]] #table5 the single Pipe
 
              }
     
     pipe_starts_ends = cases['case'+str(case_nr+1)]
-    pipe_starts_ends = [(x-1, y-1 , z-1) for x, y, z in pipe_starts_ends]
+    pipe_starts_ends = [(x-1, y-1 , z-1) for components in pipe_starts_ends for x, y, z in components]
 
     original_search_space = search_space.copy()
 
@@ -120,7 +122,6 @@ def example_jiang_etall(case_nr: int = 0):
 
     # Convert binary 3D array to graph
     graph = step3(search_space, original_search_space)
-
     all_connected_components = []
     pipeid = 1
     for start, end in zip(pipe_starts_ends[0::2], pipe_starts_ends[1::2]):
@@ -130,11 +131,11 @@ def example_jiang_etall(case_nr: int = 0):
         all_connected_components.append(connected_components_i)
         pipeid += 1
        
-    apr = AutomatedPipeRouting(all_connected_components, graph, False) # 20,1,1 is not in graph?
+    apr = AutomatedPipeRouting(all_connected_components, graph, False)
        
-    apr = step4(apr, 1, 10)
-       
+    apr = step4(apr)
     apr = simplify_graph(apr)
+    breakpoint()
     model, x, y1, y2, z, f, b = build_model(apr, 3600)
     result = run_model(model, apr, x, b)
        
@@ -621,9 +622,44 @@ def example_3_yan_yang_lin():
     box = {}
     plot_space_and_route(box, obstacles, result)
 
+
+def main(input_file: str, output_file: str, plot_result: bool = False):
+    apr = parse_apr_from_json(input_file)
+
+    # Start measuring the time
+    start_time = time.time()
+
+    # Build the model
+    model, x, y1, y2, z, f, b = build_model(apr)
+
+    # Run the model
+    pipe_route, length, nr_bends = run_model(model, apr, x, b)
+
+    # End measuring the time
+    end_time = time.time()
+
+    # Calculate the elapsed time
+    elapsed_time = end_time - start_time
+
+    apr.mathematical_model_time = elapsed_time
+    apr.pipe_route = pipe_route
+    apr.length = length
+    apr.nr_bends = nr_bends
+
+    # Store the apr object in a pickle file
+    with open(output_file, "wb") as f:
+        pickle.dump(apr, f)
+
+    # Print the results
+    print(f"Solved in {apr.mathematical_model_time + apr.build_instance_time:.2f} seconds with {apr.length:.0f} units of pipe and {apr.nr_bends:.0f} bends.")
+
+    if plot_result:
+        plot_space_and_route(apr.search_space, apr.obstacles, pipe_route)
+
+
 if __name__ == "__main__":
     # toy_example()
-    example_jiang_etall()
+    # example_jiang_etall(case_nr=1)
     # example_dong_and_bian(case_nr=1)
     # example_dong_and_bian_equipment_model()
     # example_1_min_ruy_park()
@@ -634,5 +670,7 @@ if __name__ == "__main__":
     # example_2_yan_yang_lin()
     # example_3_yan_yang_lin()
 
-    
+    input_file = "Instances/Literature/jiang_etall_case4.json"
+    output_file = "Instances/Literature/jiang_etall_case4.pkl"
+    main(input_file, output_file, plot_result=True)
     
