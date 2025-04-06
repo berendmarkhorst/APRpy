@@ -137,6 +137,10 @@ def add_directed_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting) ->
                         model.addConstr(y1[p.id, (n1, v)] + y1[p.id, (v, n2)] - 1 <= b[v])
                         model.addConstr(y1[p.id, (n2, v)] + y1[p.id, (v, n1)] - 1 <= b[v])
 
+    # Constraint 13: you can only use one pipe per edge/arc
+    for e in apr.edges:
+        model.addConstr(sum(x[p.id, e] for p in apr.pipes) <= 1)
+
     return model, x, y1, y2, z, b
 
 
@@ -203,11 +207,11 @@ def add_flow_constraints(model: hp.HighsModel, apr: AutomatedPipeRouting, z: hp.
     return model, f
 
 
-def build_model(apr: AutomatedPipeRouting, time_limit: float = 30, logfile: str = "") -> Tuple[hp.HighsModel, float]:
+def build_model(apr: AutomatedPipeRouting, time_limit: float = 300, logfile: str = "") -> Tuple[hp.HighsModel, float]:
     """
     Returns the deterministic directed model.
     :param apr: AutomatedPipeRouting-object.
-    :param time_limit: time limit in seconds for the HiGHS model. Default is 30 seconds.
+    :param time_limit: time limit in seconds for the HiGHS model. Default is 300 seconds.
     :param logfile: path to logfile.
     :return: HiGHS model.
     """

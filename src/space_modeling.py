@@ -150,14 +150,19 @@ def reduce_graph_heuristically(apr: AutomatedPipeRouting):
     for cc in apr.connected_components:
         if cc.pipe != current_pipe:
             current_pipe = cc.pipe
-            remove_nodes = nodes_to_be_kept_current_pipe - terminal_set
+            remove_nodes = nodes_to_be_kept_current_pipe - set(cc.terminals)
             apr.graph.remove_nodes_from(remove_nodes)
             nodes_to_be_kept_current_pipe = set()
+
+        # One cannot use terminals from other pipes to traverse.
+        dummy_graph = apr.graph.copy()
+        dummy_graph.remove_nodes_from(terminal_set - set(t for cc in apr.connected_components for t in cc.terminals if cc.pipe == current_pipe))
 
         for t1 in cc.terminals:
             for t2 in cc.terminals:
                 if t1 != t2:
-                    path = nx.astar_path(apr.graph, t1, t2, weight='weight')
+
+                    path = nx.astar_path(dummy_graph, t1, t2, weight='weight')
                     nodes_to_be_kept_current_pipe.update(path)
                     nodes_to_be_kept.update(path)
 

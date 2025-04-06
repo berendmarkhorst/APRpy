@@ -135,7 +135,7 @@ def example_jiang_etall(case_nr: int = 0):
        
     apr = step4(apr)
     apr = simplify_graph(apr)
-    breakpoint()
+
     model, x, y1, y2, z, f, b = build_model(apr, 3600)
     result = run_model(model, apr, x, b)
        
@@ -689,7 +689,9 @@ if __name__ == "__main__":
     # example_2_yan_yang_lin()
     # example_3_yan_yang_lin()
 
-    input_file = "Instances/Literature/jiang_etall_case4.json"
-    output_file = "Instances/Literature/jiang_etall_case4.pkl"
+    # input_file = "Instances/Literature/jiang_etall_case4.json"
+    # output_file = "Instances/Literature/jiang_etall_case4.pkl"
+    input_file = "Instances/Literature/dong_and_bian_case3.json"
+    output_file = "Instances/Literature/dong_and_bian_case3.pkl"
     main(input_file, output_file, plot_result=True)
     
