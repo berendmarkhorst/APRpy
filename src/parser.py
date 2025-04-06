@@ -1,7 +1,7 @@
 import json
 import numpy as np
 from .objects import AutomatedPipeRouting, Pipe, ConnectedComponents
-from .space_modeling import step1, step3, step4, simplify_graph
+from .space_modeling import remove_cells_with_six_neighbors, create_graph_from_voxel_array, reduce_graph_heuristically, remove_degree_two_nodes
 import time
 
 
@@ -17,7 +17,7 @@ def parse_apr_from_json(json_path: str) -> AutomatedPipeRouting:
     - Obstacles are defined as 6-tuples marking blocked rectangular prisms: [x1, y1, z1, x2, y2, z2]
     - Pipes may have multiple connected components (sets of terminals)
     - All terminals are assumed to be within bounds and not inside obstacles
-    - `step1` and `step3` are responsible for space modeling and graph creation respectively
+    - `remove_cells_with_six_neighbors` and `create_graph_from_voxel_array` are responsible for space modeling and graph creation respectively
 
     :param json_path: Path to the JSON file
     :return: An instance of `AutomatedPipeRouting`
@@ -50,10 +50,10 @@ def parse_apr_from_json(json_path: str) -> AutomatedPipeRouting:
         for t in cc_data['terminals']
     ]
 
-    search_space = step1(search_space, all_terminals)
+    search_space = remove_cells_with_six_neighbors(search_space, all_terminals)
 
     # Convert the binary search space to a graph
-    graph = step3(search_space, original_search_space)
+    graph = create_graph_from_voxel_array(search_space, original_search_space)
 
     # Create a list to hold all connected components
     all_connected_components = []
@@ -93,8 +93,8 @@ def parse_apr_from_json(json_path: str) -> AutomatedPipeRouting:
     apr.obstacles = np.array(obstacles)
 
     # Simplify the graph even more
-    apr = step4(apr)
-    apr = simplify_graph(apr)
+    apr = reduce_graph_heuristically(apr)
+    apr = remove_degree_two_nodes(apr)
 
     # Stop measuring the time and attach it to the apr object.
     end_time = time.time()

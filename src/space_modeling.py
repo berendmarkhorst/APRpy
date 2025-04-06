@@ -16,11 +16,18 @@ kernel = np.array([[[0, 0, 0], [0, 1, 0], [0, 0, 0]],
                    [[0, 0, 0], [0, 1, 0], [0, 0, 0]]])
 
 
-def step1(voxelarray, terminals):
+def remove_cells_with_six_neighbors(voxelarray, terminals):
     """
-    Basic space modeling: remove voxels with 6 neighbors, except for terminals.
+    Remove voxels with 6 neighbors, except for terminals.
+
+    This function performs the following steps:
+    1. Counts the number of neighbors for each voxel using a 3D convolution.
+    2. Sets voxels with exactly 6 neighbors to False, indicating they are removed.
+    3. Ensures that terminal voxels remain True, regardless of their neighbor count.
+
     :param voxelarray: 3D binary array representing a room.
-    :return: 3D binary array.
+    :param terminals: List of terminal coordinates as tuples (x, y, z).
+    :return: Modified 3D binary array with specified voxels removed.
     """
     # Perform the convolution to count neighbors
     neighbor_count = convolve(voxelarray.astype(int), kernel, mode='constant', cval=0)
@@ -39,34 +46,18 @@ def step1(voxelarray, terminals):
     return voxelarray
 
 
-def step2(voxelarray):
-    # Perform the convolution to count neighbors
-    neighbor_count = convolve(voxelarray.astype(int), kernel, mode='constant', cval=0)
-
-    # Identify edge elements
-    edge_mask = np.zeros_like(voxelarray, dtype=bool)
-    edge_mask[0, :, :] = edge_mask[-1, :, :] = True
-    edge_mask[:, 0, :] = edge_mask[:, -1, :] = True
-    edge_mask[:, :, 0] = edge_mask[:, :, -1] = True
-
-    # Set elements with 5 True neighbors to True if they're not at the edges
-    voxelarray[(neighbor_count == 5) & ~edge_mask] = True
-
-    # Set elements with 4 True neighbors to True if they're at the edges
-    voxelarray[(neighbor_count == 4) & edge_mask] = True
-
-    # Set the remaining elements to False
-    voxelarray[~((neighbor_count == 5) & ~edge_mask) & ~((neighbor_count == 4) & edge_mask)] = False
-
-    return voxelarray
-
-
-def step3(voxelarray, original_voxelarray) -> nx.Graph:
+def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
     """
     Create a graph from a 3D binary array using a vectorized approach.
-    Nodes are the True voxels and edges connect the nearest True voxel
-    in the positive x, y, and z directions if all intermediate voxels in
-    original_voxelarray are True.
+
+    This function performs the following steps:
+    1. Adds nodes for all True voxels in the voxel array.
+    2. Adds edges between neighboring True voxels in the positive x, y, and z directions,
+       ensuring that all intermediate voxels in the original voxel array are True.
+
+    :param voxelarray: 3D binary array representing the voxel space.
+    :param original_voxelarray: 3D binary array representing the original voxel space.
+    :return: NetworkX graph with nodes and edges representing the voxel connectivity.
     """
     logging.info("Building the graph (vectorized).")
     start = time.time()
@@ -127,38 +118,19 @@ def step3(voxelarray, original_voxelarray) -> nx.Graph:
     logging.info(f"Graph built in {duration:.2f} seconds with {len(graph.nodes)} nodes and {len(graph.edges)} edges (vectorized).")
     return graph
 
-def get_intermediate_steps(node, neighbor):
+def reduce_graph_heuristically(apr: AutomatedPipeRouting):
     """
-    Given two nodes that differ in exactly one coordinate,
-    return a list of intermediate steps (excluding the start and end)
-    with a step size of 1.
-    """
-    steps = []
-    # Calculate difference vector
-    diff = (neighbor[0] - node[0], neighbor[1] - node[1], neighbor[2] - node[2])
+    Reduce the graph heuristically by keeping only necessary nodes and edges.
 
-    if diff[0] != 0:
-        step = 1 if diff[0] > 0 else -1
-        # Exclude the start and end by using range from node[0]+step to neighbor[0]
-        for x in range(node[0] + step, neighbor[0], step):
-            steps.append((x, node[1], node[2]))
-    elif diff[1] != 0:
-        step = 1 if diff[1] > 0 else -1
-        for y in range(node[1] + step, neighbor[1], step):
-            steps.append((node[0], y, node[2]))
-    elif diff[2] != 0:
-        step = 1 if diff[2] > 0 else -1
-        for z in range(node[2] + step, neighbor[2], step):
-            steps.append((node[0], node[1], z))
+    This function performs the following steps:
+    1. Copies the original graph and initializes sets for terminal nodes and nodes to be kept.
+    2. Sorts the connected components by pipe ID to prevent overlapping solutions with different pipes.
+    3. Iterates through connected components, finding paths between terminals and updating nodes to be kept.
+    4. Removes nodes that are not in the set of nodes to be kept.
+    5. Updates the APR object with the reduced graph and recalculates Steiner points per pipe.
 
-    return steps
-
-def step4(apr: AutomatedPipeRouting):
-    """
-    Reduce the graph heuristically.
     :param apr: AutomatedPipeRouting object.
-    :param k: number of paths we consider.
-    :return:
+    :return: Modified AutomatedPipeRouting object with a reduced graph.
     """
     start = time.time()
 
@@ -169,45 +141,33 @@ def step4(apr: AutomatedPipeRouting):
     terminal_set = set(t for cc in apr.connected_components for t in cc.terminals)
     nodes_to_be_kept = terminal_set
 
-    # Sort the apr connected components by the pipe id, so we can prevent overlapping solutions with different pipes.
+    # Sort the APR connected components by the pipe ID to prevent overlapping solutions with different pipes.
     apr.connected_components = sorted(apr.connected_components, key=lambda cc: cc.pipe.id)
 
-    # We use the current pipe to track where we are with connected components.
     current_pipe = apr.connected_components[0].pipe
-
-    # We store per pipe the nodes we would like to keep
     nodes_to_be_kept_current_pipe = set()
 
     for cc in apr.connected_components:
-
         if cc.pipe != current_pipe:
-            # Update the current pipe id
             current_pipe = cc.pipe
-
             remove_nodes = nodes_to_be_kept_current_pipe - terminal_set
-
             apr.graph.remove_nodes_from(remove_nodes)
-
             nodes_to_be_kept_current_pipe = set()
 
         for t1 in cc.terminals:
             for t2 in cc.terminals:
                 if t1 != t2:
                     path = nx.astar_path(apr.graph, t1, t2, weight='weight')
-
                     nodes_to_be_kept_current_pipe.update(path)
                     nodes_to_be_kept.update(path)
 
     apr.graph = original_graph
     remove_nodes = set(apr.graph.nodes) - nodes_to_be_kept
-
-    # Remove nodes from apr.graph that are not in nodes
     apr.graph.remove_nodes_from(remove_nodes)
     apr.nodes = list(apr.graph.nodes)
     apr.edges = list(apr.graph.edges)
     apr.arcs = list(apr.graph.edges) + [(v, u) for (u, v) in apr.graph.edges]
 
-    # Per pipe type, collect the steiner points
     _, _, apr.steiner_points_per_pipe = apr.add_connected_components(apr.connected_components)
 
     for cc in apr.connected_components:
@@ -221,68 +181,38 @@ def step4(apr: AutomatedPipeRouting):
     return apr
 
 
-def manhattan_distance2(graph, p, q):
-    return graph[p][q]['weight']
+def manhattan_distance(graph, p, q):
+    """
+    Calculate the Manhattan distance between two nodes in the graph.
 
-def manhattan_distance1(p, q):
-    return int(np.sum(np.abs(np.array(p) - np.array(q))))
+    This function performs the following steps:
+    1. If the graph is provided, return the weight of the edge between nodes p and q.
+    2. If the graph is not provided, calculate the Manhattan distance between nodes p and q.
 
-
-def a_star_minimize_bends(graph, start, goal, bend_penalty=10):
-    # The state is a tuple: (current_node, previous_node)
-    # For start, previous is None
-    open_set = []
-    heappush(open_set, (0, start, None))
-
-    # Dictionaries for path reconstruction and cost tracking
-    came_from = {}  # key: (node, prev), value: (previous state)
-    cost_so_far = {(start, None): 0}
-
-    while open_set:
-        current_priority, current, prev = heappop(open_set)
-
-        if current == goal:
-            # Reconstruct the path
-            path = [current]
-            state = (current, prev)
-            while state in came_from:
-                state = came_from[state]
-                path.append(state[0])
-            path.reverse()
-            return path
-
-        for neighbor in graph.neighbors(current):
-            # Compute the distance cost from current to neighbor
-            dist = manhattan_distance2(graph, current, neighbor)
-            new_cost = cost_so_far[(current, prev)] + dist
-
-            # If there's a previous node, check for a bend
-            if prev is not None:
-                # Vectors: from prev->current and current->neighbor
-                vec1 = (current[0] - prev[0], current[1] - prev[1], current[2] - prev[2])
-                vec2 = (neighbor[0] - current[0], neighbor[1] - current[1], neighbor[2] - current[2])
-                norm1 = math.sqrt(vec1[0] ** 2 + vec1[1] ** 2 + vec1[2] ** 2)
-                norm2 = math.sqrt(vec2[0] ** 2 + vec2[1] ** 2 + vec2[2] ** 2)
-                if norm1 > 0 and norm2 > 0:
-                    # Normalize vectors
-                    dir1 = (vec1[0] / norm1, vec1[1] / norm1, vec1[2] / norm1)
-                    dir2 = (vec2[0] / norm2, vec2[1] / norm2, vec2[2] / norm2)
-                    # If the directions differ (you could allow a tolerance for near collinearity)
-                    if dir1 != dir2:
-                        new_cost += bend_penalty
-
-            new_state = (neighbor, current)
-            if new_state not in cost_so_far or new_cost < cost_so_far[new_state]:
-                cost_so_far[new_state] = new_cost
-                priority = new_cost + manhattan_distance1(neighbor, goal)
-                heappush(open_set, (priority, neighbor, current))
-                came_from[new_state] = (current, prev)
-
-    # No path found
-    return None
+    :param graph: NetworkX graph object or None.
+    :param p: First node as a tuple (x, y, z).
+    :param q: Second node as a tuple (x, y, z).
+    :return: Manhattan distance between nodes p and q.
+    """
+    if graph is not None:
+        return graph[p][q]['weight']
+    else:
+        return int(np.sum(np.abs(np.array(p) - np.array(q))))
 
 
-def simplify_graph(apr):
+def remove_degree_two_nodes(apr: AutomatedPipeRouting):
+    """
+    Remove nodes with degree two from the graph, except for terminal nodes.
+
+    This function performs the following steps:
+    1. Copies the original graph to avoid modifying it directly.
+    2. Identifies nodes to be preserved, including terminal nodes and nodes with a degree other than two.
+    3. Iteratively removes nodes with degree two that are not in the preserved set, merging their neighbors.
+    4. Updates the APR object with the reduced graph and recalculates Steiner points per pipe.
+
+    :param apr: AutomatedPipeRouting object.
+    :return: Modified AutomatedPipeRouting object with a reduced graph.
+    """
     start = time.time()
 
     G = apr.graph
@@ -314,7 +244,7 @@ def simplify_graph(apr):
                         # For now, we simply add an edge between u and v if it doesn't already exist.
                         if not H.has_edge(u, v):
                             H.add_edge(u, v)
-                            H.edges[u, v]['weight'] = manhattan_distance1(u, v)
+                            H.edges[u, v]['weight'] = manhattan_distance(None, u, v)
                         # Remove the degree-2 node.
                         H.remove_node(node)
                         changed = True
@@ -337,75 +267,3 @@ def simplify_graph(apr):
     logging.info(f"Reduced graph from {len(G.edges)} to {len(apr.graph.edges)} edges in {duration:.2f} seconds.")
 
     return apr
-
-def bresenham_3d(start, end):
-    """
-    Generate 3D Bresenham line coordinates between start and end points.
-
-    :param start: Tuple[int, int, int], starting coordinate (x1, y1, z1)
-    :param end: Tuple[int, int, int], ending coordinate (x2, y2, z2)
-    :return: List[Tuple[int, int, int]], list of coordinates on the line
-    """
-    x1, y1, z1 = start
-    x2, y2, z2 = end
-    points = []
-
-    dx = abs(x2 - x1)
-    dy = abs(y2 - y1)
-    dz = abs(z2 - z1)
-
-    xs = 1 if x2 > x1 else -1
-    ys = 1 if y2 > y1 else -1
-    zs = 1 if z2 > z1 else -1
-
-    # Driving axis is X-axis
-    if dx >= dy and dx >= dz:
-        p1 = 2 * dy - dx
-        p2 = 2 * dz - dx
-        while x1 != x2:
-            points.append((x1, y1, z1))
-            x1 += xs
-            if p1 >= 0:
-                y1 += ys
-                p1 -= 2 * dx
-            if p2 >= 0:
-                z1 += zs
-                p2 -= 2 * dx
-            p1 += 2 * dy
-            p2 += 2 * dz
-
-    # Driving axis is Y-axis
-    elif dy >= dx and dy >= dz:
-        p1 = 2 * dx - dy
-        p2 = 2 * dz - dy
-        while y1 != y2:
-            points.append((x1, y1, z1))
-            y1 += ys
-            if p1 >= 0:
-                x1 += xs
-                p1 -= 2 * dy
-            if p2 >= 0:
-                z1 += zs
-                p2 -= 2 * dy
-            p1 += 2 * dx
-            p2 += 2 * dz
-
-    # Driving axis is Z-axis
-    else:
-        p1 = 2 * dy - dz
-        p2 = 2 * dx - dz
-        while z1 != z2:
-            points.append((x1, y1, z1))
-            z1 += zs
-            if p1 >= 0:
-                y1 += ys
-                p1 -= 2 * dz
-            if p2 >= 0:
-                x1 += xs
-                p2 -= 2 * dz
-            p1 += 2 * dy
-            p2 += 2 * dx
-
-    points.append((x1, y1, z1))
-    return points
-
