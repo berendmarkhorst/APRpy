@@ -691,7 +691,12 @@ if __name__ == "__main__":
 
     # input_file = "Instances/Literature/jiang_etall_case4.json"
     # output_file = "Instances/Literature/jiang_etall_case4.pkl"
-    input_file = "Instances/Literature/dong_and_bian_case3.json"
-    output_file = "Instances/Literature/dong_and_bian_case3.pkl"
+    # input_file = "Instances/Literature/dong_and_bian_case3.json"
+    # output_file = "Instances/Literature/dong_and_bian_case3.pkl"
+    # main(input_file, output_file, plot_result=True)
+    
+    input_file = "Instances/Random_instances/random_case64_10_10_10.json"
+    output_file = "Instances/Random_instances/random_case64_10_10_10.pkl"
     main(input_file, output_file, plot_result=True)
+
     

@@ -30,8 +30,8 @@ def parse_apr_from_json(json_path: str) -> AutomatedPipeRouting:
         data = json.load(f)
 
     # Initialize the 3D search space
-    size = data['size']
-    search_space = np.ones((size, size, size), dtype=int)
+    sizes = data['size']
+    search_space = np.ones(sizes, dtype=int)
 
     # Add obstacles to the 3D grid
     obstacles = []
