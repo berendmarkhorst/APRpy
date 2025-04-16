@@ -680,7 +680,7 @@ if __name__ == "__main__":
     # toy_example()
     # example_jiang_etall(case_nr=1)
     # example_dong_and_bian(case_nr=1)
-    # example_dong_and_bian_equipment_model()
+    example_dong_and_bian_equipment_model()
     # example_1_min_ruy_park()
     # example_2_min_ruy_park()
     # example_dong_lin()

@@ -1,0 +1,256 @@
+{
+  "name": "example_3_yan_yang_lin",
+  "size": [10000, 12000, 6000],
+  "obstacles": [
+    [3300, 2003, 1875, 3700, 4943, 3164],
+    [3410, 4450, 3165, 3590, 4900, 3290],
+    [4332, 2495, 550, 6348, 4511, 2700],
+    [6348, 3490, 790, 6435, 3510, 810],
+    [5654, 2306, 1754, 5674, 2495, 1766],
+    [4925, 588, 1475, 5175, 2050, 1725],
+    [5750, 1732, 1400, 5900, 1862, 1550],
+    [6992, 3392, 1093, 7208, 3608, 1438],
+    [3810, 200, 1000, 4800, 1000, 1498],
+    [4805, 7680, 115, 5925, 8120, 539],
+    [3688, 8895, 131, 4038, 9095, 331],
+    [4333, 7308, 786, 4543, 7468, 936],
+    [4878, 7303, 686, 5088, 7463, 836],
+    [3639, 9425, 1920, 6215, 9682, 2387],
+    [3120, 8100, 1550, 3380, 8450, 2150],
+    [3900, 9070, 3510, 6589, 9490, 4020]
+  ],
+  "pipes": [
+    {
+      "id": 1,
+      "diameter": [60, 60],
+      "type": "single",
+      "connected_components": [
+        { "id": 1, "terminals": [[4250, 3500, 730], [3650, 7400, 730]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 2,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 2, "terminals": [[3500, 4530, 3164], [3250, 2260, 5347]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 3,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 3, "terminals": [[4305, 1850, 5290], [4305, 700, 1500]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 4,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 4, "terminals": [[4405, 1850, 5290], [4405, 700, 1500]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 5,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 5, "terminals": [[4505, 1850, 5290], [4505, 700, 1500]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 6,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 6, "terminals": [[4605, 1850, 5290], [4605, 700, 1500]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 7,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 7, "terminals": [[3500, 2416, 1874], [3250, 2410, 5287], [3805, 700, 1450]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 8,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 8, "terminals": [[5350, 2445, 730], [461, 2050, 1600], [629, 2095, 1350]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 9,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 9, "terminals": [[4950, 7900, 540], [4250, 9804, 5820], [3850, 11218, 4318], [3430, 10812, 4200]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 10,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 10, "terminals": [[4804, 7900, 216], [4012, 8894, 216]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 11,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 11, "terminals": [[4804, 7900, 440], [1750, 3500, 730], [3850, 8894, 230], [4331, 3500, 730]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 12,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 12, "terminals": [[3850, 9550, 2420], [7000, 5705, 5350], [3620, 9800, 2974], [3850, 9700, 1178]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 13,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 13, "terminals": [[4220, 9550, 2436], [3450, 6200, 5631]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 14,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 14, "terminals": [[6007, 9550, 2439], [3450, 6000, 5535]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 15,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 15, "terminals": [[6007, 9568, 1915], [4105, 700, 1500]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 16,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 16, "terminals": [[3850, 9550, 1915], [5830, 9550, 300]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 17,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 17, "terminals": [[4297, 4039, 660], [2427, 4120, 605]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 18,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 18, "terminals": [[6440, 3500, 800], [7100, 3500, 1443]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 19,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 19, "terminals": [[4297, 4042, 2446], [2516, 5005, 650]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 20,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 20, "terminals": [[4297, 4039, 1780], [2520, 4900, 650]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 21,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 21, "terminals": [[7100, 3500, 1091], [596, 1850, 150]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 22,
+      "diameter": [20, 20],
+      "type": "single",
+      "connected_components": [
+        { "id": 22, "terminals": [[1210, 1979, 950], [5150, 2494, 690]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 23,
+      "diameter": [10, 10],
+      "type": "single",
+      "connected_components": [
+        { "id": 23, "terminals": [[5664, 2311, 1760], [5633, 750, 300]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 24,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 24, "terminals": [[3479, 4821, 3260], [4036, 8581, 1173]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 25,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 25, "terminals": [[3300, 10884, 4180], [2450, 4233, 1574], [4765, 4512, 730]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 26,
+      "diameter": [30, 30],
+      "type": "branchpipe",
+      "connected_components": [
+        { "id": 26, "terminals": [[5501, 7550, 600], [3775, 8950, 333], [6400, 4720, 5450], [1744, 6500, 4031]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 27,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 27, "terminals": [[8250, 6635, 2350], [765, 6600, 2350]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 28,
+      "diameter": [30, 30],
+      "type": "single",
+      "connected_components": [
+        { "id": 28, "terminals": [[8250, 6604, 1497], [2153, 6550, 2232]], "forbidden_nodes": [] }
+      ]
+    },
+    {
+      "id": 29,
+      "diameter": [20, 20],
+      "type": "single",
+      "connected_components": [
+        { "id": 29, "terminals": [[7100, 7500, 4350], [7174, 4378, 472]], "forbidden_nodes": [] }
+      ]
+    }
+  ]
+}
