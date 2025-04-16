@@ -61,7 +61,6 @@ def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
     """
     logging.info("Building the graph (vectorized).")
     start = time.time()
-    nx_dim, ny, nz = voxelarray.shape
     graph = nx.Graph()
 
     # Add nodes: all indices where voxelarray is True.
@@ -69,6 +68,21 @@ def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
     nodes = [tuple(map(int, idx)) for idx in true_indices]
     graph.add_nodes_from(nodes)
 
+    graph = add_edges_between_neighbors(graph, voxelarray, original_voxelarray)
+
+    duration = time.time() - start
+    logging.info(f"Graph built in {duration:.2f} seconds with {len(graph.nodes)} nodes and {len(graph.edges)} edges (vectorized).")
+    return graph
+
+def add_edges_between_neighbors(graph, voxelarray, original_voxelarray):
+    """
+    HIER KOMT NOG IETS! DIT KAN SNELLER DE TWEEDE KEER!
+    :param graph:
+    :param voxelarray:
+    :param original_voxelarray:
+    :return:
+    """
+    nx_dim, ny, nz = voxelarray.shape
     # Process positive x-direction: loop over all (y, z) slices.
     for y in range(ny):
         for z in range(nz):
@@ -77,9 +91,9 @@ def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
             if len(x_coords) > 1:
                 # Since x_coords is sorted, the immediate neighbor is the next element.
                 for i in range(len(x_coords) - 1):
-                    x1, x2 = x_coords[i], x_coords[i+1]
+                    x1, x2 = x_coords[i], x_coords[i + 1]
                     # If there is a gap, check that all intermediate voxels are True.
-                    if x2 > x1 + 1 and not np.all(original_voxelarray[x1+1:x2, y, z]):
+                    if x2 > x1 + 1 and not np.all(original_voxelarray[x1 + 1:x2, y, z]):
                         continue
                     node1 = (int(x1), int(y), int(z))
                     node2 = (int(x2), int(y), int(z))
@@ -92,8 +106,8 @@ def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
             y_coords = np.nonzero(voxelarray[x, :, z])[0]
             if len(y_coords) > 1:
                 for i in range(len(y_coords) - 1):
-                    y1, y2 = y_coords[i], y_coords[i+1]
-                    if y2 > y1 + 1 and not np.all(original_voxelarray[x, y1+1:y2, z]):
+                    y1, y2 = y_coords[i], y_coords[i + 1]
+                    if y2 > y1 + 1 and not np.all(original_voxelarray[x, y1 + 1:y2, z]):
                         continue
                     node1 = (int(x), int(y1), int(z))
                     node2 = (int(x), int(y2), int(z))
@@ -106,16 +120,14 @@ def create_graph_from_voxel_array(voxelarray, original_voxelarray) -> nx.Graph:
             z_coords = np.nonzero(voxelarray[x, y, :])[0]
             if len(z_coords) > 1:
                 for i in range(len(z_coords) - 1):
-                    z1, z2 = z_coords[i], z_coords[i+1]
-                    if z2 > z1 + 1 and not np.all(original_voxelarray[x, y, z1+1:z2]):
+                    z1, z2 = z_coords[i], z_coords[i + 1]
+                    if z2 > z1 + 1 and not np.all(original_voxelarray[x, y, z1 + 1:z2]):
                         continue
                     node1 = (int(x), int(y), int(z1))
                     node2 = (int(x), int(y), int(z2))
                     weight = int(z2 - z1)
                     graph.add_edge(node1, node2, weight=weight)
 
-    duration = time.time() - start
-    logging.info(f"Graph built in {duration:.2f} seconds with {len(graph.nodes)} nodes and {len(graph.edges)} edges (vectorized).")
     return graph
 
 def reduce_graph_heuristically(apr: AutomatedPipeRouting):
@@ -157,11 +169,12 @@ def reduce_graph_heuristically(apr: AutomatedPipeRouting):
         # One cannot use terminals from other pipes to traverse.
         dummy_graph = apr.graph.copy()
         dummy_graph.remove_nodes_from(terminal_set - set(t for cc in apr.connected_components for t in cc.terminals if cc.pipe == current_pipe))
+        forbidden_nodes = set(dummy_graph.nodes()) - set(cc.allowed_nodes)
+        dummy_graph.remove_nodes_from(forbidden_nodes)
 
-        for t1 in cc.terminals:
-            for t2 in cc.terminals:
-                if t1 != t2:
-
+        for i, t1 in enumerate(cc.terminals):
+            for j, t2 in enumerate(cc.terminals):
+                if i < j:
                     path = nx.astar_path(dummy_graph, t1, t2, weight='weight')
                     nodes_to_be_kept_current_pipe.update(path)
                     nodes_to_be_kept.update(path)

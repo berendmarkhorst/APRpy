@@ -6,7 +6,7 @@ from .objects import Pipe
 from typing import List, Tuple, Dict
 
 obstacle_colors = [(0, 0, 1, 0.1), (0, 0, 1, 0.3)]
-pipe_colors = [(0, 0, 1, 1), (0, 1, 0, 1)]
+pipe_colors = [(1, 0, 0, 1), (0, 1, 0, 1), (0, 0, 1, 1)]
 
 def fix_obstacle_ordering(obstacle):
     """
@@ -101,7 +101,7 @@ def cylinder(towers, colors=None, resolution=20, **kwargs):
     poly3d = Poly3DCollection(polys, facecolors=colors, **kwargs)
     return poly3d
 
-def plot_pipe(pipe):
+def plot_pipe(pipe, color):
     pipe = np.array(pipe)
     pipesegments = []
     for pipe_segment in pipe:
@@ -112,7 +112,7 @@ def plot_pipe(pipe):
     pipesegments = np.array(pipesegments)    
     positions_pipe = pipesegments[:,0]
     sizes_pipe = pipesegments[:,1] - pipesegments[:,0] + 1
-    colors_pipe = [pipe_colors[1]]*len(positions_pipe)
+    colors_pipe = [color]*len(positions_pipe)
     return plotCubeAt(positions_pipe, sizes_pipe, colors=colors_pipe, edgecolor="k")
 
 def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), result: Dict[Pipe, List[Tuple[int, int, int]]] = {}, towers: np.array = np.empty((0,5)) ):
@@ -135,9 +135,9 @@ def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), r
         cyl_obstacles = cylinder(towers, color_cylinders, edgecolor="k")
         ax.add_collection3d(cyl_obstacles)
 
-    for res_i in result:
+    for i, res_i in enumerate(result):
         pipe = result[res_i]
-        pc_pipe = plot_pipe(pipe)
+        pc_pipe = plot_pipe(pipe, pipe_colors[i])
         ax.add_collection3d(pc_pipe)
     
     ax.set_xlim([0,box.shape[0]])
