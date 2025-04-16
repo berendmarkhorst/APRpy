@@ -154,14 +154,16 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
         
         # Generate a random move
         move_direction = moves[np.random.randint(0, len(moves))]
+        # make sure that new move is not the previous move in the opposite direction
         while all(move_direction == previous_move_direction*-1):
-            move_direction = moves[np.random.randint(0, len(moves))]
-
+            move_direction = moves[np.random.randint(0, len(moves))] 
+        
+        #define move size that does not go out of the space or is longer than intended pipe length
         move_size = np.random.randint(1, pipe_space.shape)
         move_size = np.minimum(move_size, np.array([pipe_length-length_so_far, pipe_length-length_so_far, pipe_length-length_so_far]))
         move = move_direction * move_size
         
-        # Calculate the new point
+        # Calculate the new destination point
         new_point = tuple(current_point[i] + move[i] for i in range(3))
         pipe_part = np.array(sum([current_point,new_point], ()))
         pipe_part = fix_obstacle_ordering(pipe_part)
@@ -178,7 +180,7 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
                 pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1] = pipe_id
                 length_so_far += abs(sum(move))
                 current_distance = new_distance
-                
+                #if the new location is in the corner there is no logic next move anymore as this will not increase manhatten distance.
                 if is_corner_coordinate(new_point, pipe_space):
                     print('With the random walk you reached the corner and we can no longer increase the pipe length without making irrational moves. The goal pipe length was: ', pipe_length, 'a random pipe with a pipe length of', length_so_far,' is proposed. You can try with a different seed number to change the starting coordinate')
                     return pipe_space, pipe_route[1:]
