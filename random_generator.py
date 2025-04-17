@@ -73,19 +73,20 @@ def write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pi
         
     return json_case
     
+def is_valid_move(x, y, z, space, pipe_id, shape):
+    return 0 <= x < shape[0] and 0 <= y < shape[1] and 0 <= z < shape[2] and (space[x, y, z] == 1 or space[x, y, z] == pipe_id)
 
-def is_valid_move(x, y, z, space):
-    return 0 <= x < space.shape[0] and 0 <= y < space.shape[1] and 0 <= z < space.shape[2] and (space[x, y, z] == 1 or space[x, y, z] == 2)
-
-def bfs_manhattan_distance(space, start, end):
+def bfs_manhattan_distance(space, start, end, pipe_id, memory):
     if space[start] == 0 or space[end] == 0:
         return -1  # No path if start or end is an obstacle
+    if (start,end) in memory:
+        return memory[(start,end)]
     
     directions = [(1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)]
     queue = deque([(start, 0)])
     visited = set()
     visited.add(start)
-    
+    shape = space.shape
     while queue:
         (x, y, z), dist = queue.popleft()
         
@@ -94,14 +95,13 @@ def bfs_manhattan_distance(space, start, end):
         
         for dx, dy, dz in directions:
             nx, ny, nz = x + dx, y + dy, z + dz
-            if is_valid_move(nx, ny, nz, space) and (nx, ny, nz) not in visited:
+            
+            if is_valid_move(nx, ny, nz, space, pipe_id, shape) and (nx, ny, nz) not in visited:
                 visited.add((nx, ny, nz))
                 queue.append(((nx, ny, nz), dist + 1))
+                memory[(start,(nx, ny, nz))] = dist+1
     
     return -1  # No path found
-
-import numpy as np
-
 
 def is_corner_coordinate(coord, array):
     shape = array.shape
@@ -131,7 +131,6 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
     pipe_route : the random route described in a list of tuples that represent origin and destionation
 
     """
-    tries = 0
     previous_move_direction = np.array([0,0,0])
     # Generate a random starting point within the array
     start = tuple(np.random.randint(0, s) for s in pipe_space.shape)
@@ -149,8 +148,10 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
     moves = np.array([[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]])
     
     length_so_far = 0
+    bfs_memory = {}
+    
     while length_so_far < pipe_length:
-        current_point = pipe_route[-1][1]
+        current_point = np.array(pipe_route[-1][1])
         
         # Generate a random move
         move_direction = moves[np.random.randint(0, len(moves))]
@@ -164,24 +165,24 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
         move = move_direction * move_size
         
         # Calculate the new destination point
-        new_point = tuple(current_point[i] + move[i] for i in range(3))
-        pipe_part = np.array(sum([current_point,new_point], ()))
+        new_point = current_point + move
+        pipe_part = np.hstack((current_point, new_point))
         pipe_part = fix_obstacle_ordering(pipe_part)
 
         # Check if the new point is within bounds, check if 1 coordinate is already visited, and manhatten distance (incooperating obstacles) is larger than previous point.
         if (all(0 <= new_point[i] < pipe_space.shape[i] for i in range(3)) and 
             np.all(np.logical_or( pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1]==1 , 
                           pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1]==pipe_id))):
-            new_distance = bfs_manhattan_distance(pipe_space, start, new_point)
-            
-            if new_distance > current_distance:            
+            new_distance = bfs_manhattan_distance(pipe_space, start, tuple(new_point), pipe_id, bfs_memory)
+            if new_distance > current_distance:  
+                print('Pipe found so far:',new_distance, 'Pipe length goal', pipe_length)
                 previous_move_direction = move_direction
-                pipe_route.append((current_point, new_point))
+                pipe_route.append((tuple(current_point), tuple(new_point)))
                 pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1] = pipe_id
                 length_so_far += abs(sum(move))
                 current_distance = new_distance
                 #if the new location is in the corner there is no logic next move anymore as this will not increase manhatten distance.
-                if is_corner_coordinate(new_point, pipe_space):
+                if is_corner_coordinate(tuple(new_point), pipe_space):
                     print('With the random walk you reached the corner and we can no longer increase the pipe length without making irrational moves. The goal pipe length was: ', pipe_length, 'a random pipe with a pipe length of', length_so_far,' is proposed. You can try with a different seed number to change the starting coordinate')
                     return pipe_space, pipe_route[1:]
     
@@ -209,18 +210,21 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
     sizex, sizey, sizez, = search_size
     search_space = np.ones((sizex, sizey, sizez))
     pipe_space = search_space.copy()
-    
+    print('Start creating random pipes with lengths', pipe_lengths, 'and fill the space for a percentage of',100*fill_percentage)
     result_random = {}
     for pipe_i in range(len(pipe_lengths)):
         pipe_space, pipe_route = create_random_pipe_route(pipe_lengths[pipe_i], pipe_space, pipe_i+2)
         result_random['Pipe ' + str(pipe_i+1)] = pipe_route
+        print('Finished Pipe',pipe_i+1)
     
-    plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random)
+    plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random, saveTitle='illustrativeExampleLargestRoute')
     
     search_space = np.ones((sizex, sizey, sizez))
-    
+    print('Create Obstacles')
     obstacles = []
-    while sizex*sizey*sizez - np.sum(search_space) + np.sum(pipe_space==0) < sizex*sizey*sizez*fill_percentage:
+    pipe_lengths = np.sum(pipe_space!=1)
+    unoccupied_search_space = np.sum(search_space)
+    while sizex*sizey*sizez - unoccupied_search_space + pipe_lengths < sizex*sizey*sizez*fill_percentage:
         obstacle = np.random.randint([0,0,0,0,0,0], [sizex+1, sizey+1, sizez+1, sizex+1, sizey+1, sizez+1]) #lower and upper bound        
         obstacle = fix_obstacle_ordering(obstacle) # guarantee that lowerbound is lower than higher bound by switching where nessesary
         # if lower and upper bound of obstacle ar not equal and 
@@ -230,10 +234,12 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
             not np.any(search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]]==0) and \
                 not np.any(pipe_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]]>=2):
             search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
+            unoccupied_search_space = np.sum(search_space)
             obstacles.append(obstacle)
+            print((sizex*sizey*sizez - (np.sum(search_space) - pipe_lengths))/(sizex*sizey*sizez), '% occupied')
     
     obstacles = np.array(obstacles)
-    plot_space_and_route(search_space, obstacles, result_random)
+    plot_space_and_route(search_space, obstacles, result_random, saveTitle='illustrativeExampleLargest')
     return search_space, obstacles, result_random
 
 # todo = needs a termination criteria otherwise stays stuck in while loop. 
@@ -292,13 +298,14 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
 
 
 if __name__ == "__main__":
-    seed = np.random.randint(100)
-    pipe_lengths = [80,80]
-    search_size = [10,10,10]
-    fill_ratio = 0.03
+    seed = 862#np.random.randint(1000) #42 #26 #899 #266
+    pipe_lengths = 5*[500]
+    search_size = [200,200,200]
+    fill_ratio = 0.4
     np.random.seed(seed)
     search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths)
     json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
+    print(seed)
 
     # todo:
     """hang the obstacles to the pipe. """        

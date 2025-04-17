@@ -6,7 +6,7 @@ from .objects import Pipe
 from typing import List, Tuple, Dict
 
 obstacle_colors = [(0, 0, 1, 0.1), (0, 0, 1, 0.3)]
-pipe_colors = [(0, 0, 1, 1), (0, 1, 0, 1)]
+pipe_colors = [(0, 0, 1, 1), (0, 1, 0, 0.4)]
 
 def fix_obstacle_ordering(obstacle):
     """
@@ -101,7 +101,7 @@ def cylinder(towers, colors=None, resolution=20, **kwargs):
     poly3d = Poly3DCollection(polys, facecolors=colors, **kwargs)
     return poly3d
 
-def plot_pipe(pipe):
+def plot_pipe(pipe, **kwargs):
     pipe = np.array(pipe)
     pipesegments = []
     for pipe_segment in pipe:
@@ -113,9 +113,9 @@ def plot_pipe(pipe):
     positions_pipe = pipesegments[:,0]
     sizes_pipe = pipesegments[:,1] - pipesegments[:,0] + 1
     colors_pipe = [pipe_colors[1]]*len(positions_pipe)
-    return plotCubeAt(positions_pipe, sizes_pipe, colors=colors_pipe, edgecolor="k")
+    return plotCubeAt(positions_pipe, sizes_pipe, colors=colors_pipe, **kwargs)
 
-def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), result: Dict[Pipe, List[Tuple[int, int, int]]] = {}, towers: np.array = np.empty((0,5)) ):
+def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), result: Dict[Pipe, List[Tuple[int, int, int]]] = {}, towers: np.array = np.empty((0,5)), saveTitle=None):
     """
     Visualize the search space, obstacles, and the route of the APR-instance.
     """
@@ -127,7 +127,7 @@ def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), r
     
     if len(obstacles)>0:
         color_obstacles = [obstacle_colors[0]]*len(positions)
-        pc_obstacles = plotCubeAt(positions, sizes, colors=color_obstacles, edgecolor="k")
+        pc_obstacles = plotCubeAt(positions, sizes, colors=color_obstacles, edgecolor="k", label='Obstacle')
         ax.add_collection3d(pc_obstacles)
 
     if len(towers)>0:
@@ -137,7 +137,7 @@ def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), r
 
     for res_i in result:
         pipe = result[res_i]
-        pc_pipe = plot_pipe(pipe)
+        pc_pipe = plot_pipe(pipe, edgecolor="k", label=res_i)
         ax.add_collection3d(pc_pipe)
     
     ax.set_xlim([0,box.shape[0]])
@@ -149,7 +149,13 @@ def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), r
     ax.set_ylabel('Y axis')
     ax.set_zlabel('Z axis')
     
+    ax.legend()
+    
+    ax.set_title('3D Pipe Route Visualization')
+    
     plt.show()
+    if saveTitle:
+        plt.savefig(str(saveTitle)+'.pdf')
 
 def scatterplot_quick_check(search_space):
     #quick check to see if search space also is well defined in the boolean array:
