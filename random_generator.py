@@ -217,7 +217,7 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
         result_random['Pipe ' + str(pipe_i+1)] = pipe_route
         print('Finished Pipe',pipe_i+1)
     
-    plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random, saveTitle='illustrativeExampleLargestRoute')
+    plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random)#, saveTitle='illustrativeExamplesmall2Route')
     
     search_space = np.ones((sizex, sizey, sizez))
     print('Create Obstacles')
@@ -239,7 +239,7 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
             print((sizex*sizey*sizez - (np.sum(search_space) - pipe_lengths))/(sizex*sizey*sizez), '% occupied')
     
     obstacles = np.array(obstacles)
-    plot_space_and_route(search_space, obstacles, result_random, saveTitle='illustrativeExampleLargest')
+    plot_space_and_route(search_space, obstacles, result_random)#, saveTitle='illustrativeExamplesmall2')
     return search_space, obstacles, result_random
 
 # todo = needs a termination criteria otherwise stays stuck in while loop. 
@@ -298,10 +298,10 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
 
 
 if __name__ == "__main__":
-    seed = 862#np.random.randint(1000) #42 #26 #899 #266
-    pipe_lengths = 5*[500]
-    search_size = [200,200,200]
-    fill_ratio = 0.4
+    seed = 266 #np.random.randint(1000) #118 984 862 #42 #26 #899 #266
+    pipe_lengths = [15]
+    search_size = [8,8,8]
+    fill_ratio = 0.1
     np.random.seed(seed)
     search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths)
     json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
