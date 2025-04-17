@@ -117,7 +117,7 @@ def is_corner_coordinate(coord, array):
     ]
     return coord in corners
 
-def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
+def create_random_pipe_route(pipe_length, pipe_space, pipe_id, verbose=False):
     """
     Parameters
     ----------
@@ -175,7 +175,8 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
                           pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1]==pipe_id))):
             new_distance = bfs_manhattan_distance(pipe_space, start, tuple(new_point), pipe_id, bfs_memory)
             if new_distance > current_distance:  
-                print('Pipe found so far:',new_distance, 'Pipe length goal', pipe_length)
+                if verbose:
+                    print('Pipe found so far:',new_distance, 'Pipe length goal', pipe_length)
                 previous_move_direction = move_direction
                 pipe_route.append((tuple(current_point), tuple(new_point)))
                 pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1] = pipe_id
@@ -183,12 +184,13 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id):
                 current_distance = new_distance
                 #if the new location is in the corner there is no logic next move anymore as this will not increase manhatten distance.
                 if is_corner_coordinate(tuple(new_point), pipe_space):
-                    print('With the random walk you reached the corner and we can no longer increase the pipe length without making irrational moves. The goal pipe length was: ', pipe_length, 'a random pipe with a pipe length of', length_so_far,' is proposed. You can try with a different seed number to change the starting coordinate')
+                    if verbose:
+                        print('With the random walk you reached the corner and we can no longer increase the pipe length without making irrational moves. The goal pipe length was: ', pipe_length, 'a random pipe with a pipe length of', length_so_far,' is proposed. You can try with a different seed number to change the starting coordinate')
                     return pipe_space, pipe_route[1:]
     
     return pipe_space, pipe_route[1:]
 
-def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_lengths):
+def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_lengths,verbose=False):
     """
     creates one or more single pipe routes from random chosen location with a user defined pipe length and problem space size
     Starts with creating a random pipe and then random obstacles that do not collide with pipe.
@@ -210,17 +212,21 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
     sizex, sizey, sizez, = search_size
     search_space = np.ones((sizex, sizey, sizez))
     pipe_space = search_space.copy()
-    print('Start creating random pipes with lengths', pipe_lengths, 'and fill the space for a percentage of',100*fill_percentage)
+    if verbose:
+        print('Start creating random pipes with lengths', pipe_lengths, 'and fill the space for a percentage of',100*fill_percentage)
     result_random = {}
     for pipe_i in range(len(pipe_lengths)):
-        pipe_space, pipe_route = create_random_pipe_route(pipe_lengths[pipe_i], pipe_space, pipe_i+2)
+        pipe_space, pipe_route = create_random_pipe_route(pipe_lengths[pipe_i], pipe_space, pipe_i+2, verbose)
         result_random['Pipe ' + str(pipe_i+1)] = pipe_route
-        print('Finished Pipe',pipe_i+1)
+        if verbose:
+            print('Finished Pipe',pipe_i+1)
     
-    plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random)#, saveTitle='illustrativeExamplesmall2Route')
+    if verbose:
+        plot_space_and_route(pipe_space, np.array([[0,0,0,1,1,1]]), result_random)#, saveTitle='illustrativeExamplesmall2Route')
     
     search_space = np.ones((sizex, sizey, sizez))
-    print('Create Obstacles')
+    if verbose:
+        print('Create Obstacles')
     obstacles = []
     pipe_lengths = np.sum(pipe_space!=1)
     unoccupied_search_space = np.sum(search_space)
@@ -236,10 +242,12 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
             search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
             unoccupied_search_space = np.sum(search_space)
             obstacles.append(obstacle)
-            print((sizex*sizey*sizez - (np.sum(search_space) - pipe_lengths))/(sizex*sizey*sizez), '% occupied')
+            if verbose:
+                print((sizex*sizey*sizez - (np.sum(search_space) - pipe_lengths))/(sizex*sizey*sizez), '% occupied')
     
     obstacles = np.array(obstacles)
-    plot_space_and_route(search_space, obstacles, result_random)#, saveTitle='illustrativeExamplesmall2')
+    if verbose:
+        plot_space_and_route(search_space, obstacles, result_random)#, saveTitle='illustrativeExamplesmall2')
     return search_space, obstacles, result_random
 
 # todo = needs a termination criteria otherwise stays stuck in while loop. 
@@ -298,14 +306,15 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
 
 
 if __name__ == "__main__":
-    seed = 266 #np.random.randint(1000) #118 984 862 #42 #26 #899 #266
-    pipe_lengths = [15]
-    search_size = [8,8,8]
-    fill_ratio = 0.1
-    np.random.seed(seed)
-    search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths)
-    json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
-    print(seed)
+    for seed in range(50):
+        # seed = np.random.randint(1000) #118 984 862 #42 #26 #899 #266
+        pipe_lengths = [400,250]
+        search_size = [200,200,200]
+        fill_ratio = 0.4
+        np.random.seed(seed)
+        search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
+        json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
+        print(seed)
 
     # todo:
     """hang the obstacles to the pipe. """        
