@@ -1,0 +1,51 @@
+{
+    "name": "randomcase_seed5_size100_100_100_pipes150_fill03",
+    "size": [
+        100,
+        100,
+        100
+    ],
+    "obstacles": [
+        [
+            16,
+            1,
+            5,
+            62,
+            78,
+            82
+        ],
+        [
+            7,
+            16,
+            31,
+            14,
+            90,
+            94
+        ]
+    ],
+    "pipes": [
+        {
+            "id": 1,
+            "diameter": 1,
+            "costs": 1,
+            "connected_components": [
+                {
+                    "id": 1,
+                    "terminals": [
+                        [
+                            99,
+                            78,
+                            61
+                        ],
+                        [
+                            51,
+                            0,
+                            37
+                        ]
+                    ],
+                    "forbidden_nodes": []
+                }
+            ]
+        }
+    ]
+}

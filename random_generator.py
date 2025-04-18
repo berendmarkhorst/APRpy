@@ -308,9 +308,33 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
 if __name__ == "__main__":
     for seed in range(50):
         # seed = np.random.randint(1000) #118 984 862 #42 #26 #899 #266
-        pipe_lengths = [200,150]
+        pipe_lengths = [150]
         search_size = [100,100,100]
-        fill_ratio = 0.4
+        fill_ratio = 0.3
+        np.random.seed(seed)
+        search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
+        json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
+        print(seed)
+    for seed in range(50):    
+        pipe_lengths = [200]
+        search_size = [100,100,100]
+        fill_ratio = 0.3
+        np.random.seed(seed)
+        search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
+        json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
+        print(seed)
+    for seed in range(50):    
+        pipe_lengths = [250]
+        search_size = [100,100,100]
+        fill_ratio = 0.3
+        np.random.seed(seed)
+        search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
+        json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)
+        print(seed)
+    for seed in range(50):    
+        pipe_lengths = [300]
+        search_size = [100,100,100]
+        fill_ratio = 0.3
         np.random.seed(seed)
         search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
         json_case = write_random_case_json(search_space, obstacles, result, seed, fill_ratio, pipe_lengths)

@@ -5,6 +5,7 @@ from src.visualize import *
 from src.parser import parse_apr_from_json
 import numpy as np
 import pickle
+import os
 
 
 def solve_pipe_problem(search_space, obstacles, result):
@@ -694,9 +695,15 @@ if __name__ == "__main__":
     # input_file = "Instances/Literature/dong_and_bian_case3.json"
     # output_file = "Instances/Literature/dong_and_bian_case3.pkl"
     # main(input_file, output_file, plot_result=True)
-    
-    input_file = "Instances/Random_instances/random_case64_10_10_10.json"
-    output_file = "Instances/Random_instances/random_case64_10_10_10.pkl"
-    main(input_file, output_file, plot_result=True)
+    for root, subdirs, files in os.walk("Instances/Random_instances/"):
+        for file in files:
+            if root != 'Instances/Random_instances/':
+                json_file = root + '/' + file
+                output_file = root + '/' + file[:-5] + '.pkl'
+                exists = os.path.isfile(output_file)
+                if not exists:
+                    print(json_file)
+                    main(json_file, output_file, plot_result=False)
+                
 
     
