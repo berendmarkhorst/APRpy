@@ -674,14 +674,14 @@ def main(input_file: str, output_file: str, plot_result: bool = False):
     print(f"Solved in {apr.mathematical_model_time + apr.build_instance_time:.2f} seconds with {apr.length:.0f} units of pipe and {apr.nr_bends:.0f} bends.")
 
     if plot_result:
-        plot_space_and_route(apr.search_space, apr.obstacles, pipe_route)
+        plot_space_and_route(apr.search_space, apr.obstacles, apr.pipe_route)
 
 
 if __name__ == "__main__":
     # toy_example()
     # example_jiang_etall(case_nr=1)
     # example_dong_and_bian(case_nr=1)
-    # example_dong_and_bian_equipment_model()
+    example_dong_and_bian_equipment_model()
     # example_1_min_ruy_park()
     # example_2_min_ruy_park()
     # example_dong_lin()

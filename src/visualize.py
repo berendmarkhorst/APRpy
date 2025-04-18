@@ -135,7 +135,7 @@ def plot_space_and_route(box: np.array, obstacles: np.array = np.empty((0,6)), r
         cyl_obstacles = cylinder(towers, color_cylinders, edgecolor="k")
         ax.add_collection3d(cyl_obstacles)
 
-    for res_i in result:
+    for i, res_i in enumerate(result):
         pipe = result[res_i]
         pc_pipe = plot_pipe(pipe, edgecolor="k", label=res_i)
         ax.add_collection3d(pc_pipe)
