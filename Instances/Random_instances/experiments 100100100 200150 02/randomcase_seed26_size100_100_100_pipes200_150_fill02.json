@@ -1,0 +1,82 @@
+{
+    "name": "randomcase_seed26_size100_100_100_pipes200_150_fill02",
+    "size": [
+        100,
+        100,
+        100
+    ],
+    "obstacles": [
+        [
+            46,
+            0,
+            39,
+            82,
+            84,
+            90
+        ],
+        [
+            0,
+            18,
+            84,
+            24,
+            89,
+            90
+        ],
+        [
+            52,
+            24,
+            8,
+            69,
+            91,
+            39
+        ]
+    ],
+    "pipes": [
+        {
+            "id": 1,
+            "diameter": 1,
+            "costs": 1,
+            "connected_components": [
+                {
+                    "id": 1,
+                    "terminals": [
+                        [
+                            53,
+                            62,
+                            6
+                        ],
+                        [
+                            0,
+                            99,
+                            99
+                        ]
+                    ],
+                    "forbidden_nodes": []
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "diameter": 1,
+            "costs": 1,
+            "connected_components": [
+                {
+                    "id": 2,
+                    "terminals": [
+                        [
+                            45,
+                            78,
+                            18
+                        ],
+                        [
+                            94,
+                            60,
+                            77
+                        ]
+                    ],
+                    "forbidden_nodes": []
+                }
+            ]
+        }
+    ]
+}

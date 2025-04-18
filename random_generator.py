@@ -308,8 +308,8 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
 if __name__ == "__main__":
     for seed in range(50):
         # seed = np.random.randint(1000) #118 984 862 #42 #26 #899 #266
-        pipe_lengths = [400,250]
-        search_size = [200,200,200]
+        pipe_lengths = [200,150]
+        search_size = [100,100,100]
         fill_ratio = 0.4
         np.random.seed(seed)
         search_space, obstacles, result = random_pipe_obstacle_problem_gemerator(fill_ratio, search_size, pipe_lengths,verbose=False)
