@@ -696,18 +696,6 @@ if __name__ == "__main__":
     # output_file = "Instances/Literature/dong_and_bian_case3.pkl"
     # main(input_file, output_file, plot_result=True)
     
-    # import pickle
-
-    # # Replace 'your_file.pkl' with the path to your .pkl file
-    # with open('randomcase_seed12_size100_100_100_pipes200_125_fill03.pkl', 'rb') as file:
-    #     data = pickle.load(file)
-        
-    # data.nr_bends
-    # data.length
-    # data.solution
-    # print(data)
-
-    
     # json_file = 'Instances/Random_instances/experiments 100100100 200125 03/randomcase_seed12_size100_100_100_pipes200_125_fill03.json'
     # output_file = 'randomcase_seed12_size100_100_100_pipes200_125_fill03.pkl'
 
