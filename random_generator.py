@@ -174,7 +174,7 @@ def create_random_pipe_route(pipe_length, pipe_space, pipe_id, verbose=False):
             np.all(np.logical_or( pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1]==1 , 
                           pipe_space[pipe_part[0]:pipe_part[3]+1, pipe_part[1]:pipe_part[4]+1, pipe_part[2]:pipe_part[5]+1]==pipe_id))):
             new_distance = bfs_manhattan_distance(pipe_space, start, tuple(new_point), pipe_id, bfs_memory)
-            if new_distance > current_distance:  
+            if new_distance > current_distance:
                 if verbose:
                     print('Pipe found so far:',new_distance, 'Pipe length goal', pipe_length)
                 previous_move_direction = move_direction
@@ -238,7 +238,7 @@ def random_pipe_obstacle_problem_gemerator(fill_percentage, search_size, pipe_le
         # if not any space is already occupied by a pipe
         if not( obstacle[0] == obstacle[3] or obstacle[1] == obstacle[4] or obstacle[2] == obstacle[5]) and \
             not np.any(search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]]==0) and \
-                not np.any(pipe_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]]>=2):
+              not np.any(pipe_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]]>=2):
             search_space[obstacle[0]:obstacle[3], obstacle[1]:obstacle[4], obstacle[2]:obstacle[5]] = 0
             unoccupied_search_space = np.sum(search_space)
             obstacles.append(obstacle)

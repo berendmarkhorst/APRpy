@@ -37,7 +37,7 @@ def parse_apr_from_json(json_path: str) -> AutomatedPipeRouting:
     obstacles = []
     for obstacle in data['obstacles']:
         x1, y1, z1, x2, y2, z2 = obstacle
-        search_space[x1:x2+1, y1:y2+1, z1:z2+1] = 0
+        search_space[x1:x2, y1:y2, z1:z2] = 0
         obstacles.append(obstacle)
 
     original_search_space = search_space.copy()
