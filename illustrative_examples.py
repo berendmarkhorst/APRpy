@@ -681,7 +681,7 @@ if __name__ == "__main__":
     # toy_example()
     # example_jiang_etall(case_nr=1)
     # example_dong_and_bian(case_nr=1)
-    example_dong_and_bian_equipment_model()
+    # example_dong_and_bian_equipment_model()
     # example_1_min_ruy_park()
     # example_2_min_ruy_park()
     # example_dong_lin()
@@ -695,15 +695,20 @@ if __name__ == "__main__":
     # input_file = "Instances/Literature/dong_and_bian_case3.json"
     # output_file = "Instances/Literature/dong_and_bian_case3.pkl"
     # main(input_file, output_file, plot_result=True)
+    errorFiles = []
     for root, subdirs, files in os.walk("Instances/Random_instances/"):
         for file in files:
             if root != 'Instances/Random_instances/':
                 json_file = root + '/' + file
                 output_file = root + '/' + file[:-5] + '.pkl'
                 exists = os.path.isfile(output_file)
-                if not exists:
-                    print(json_file)
-                    main(json_file, output_file, plot_result=False)
+                if not exists and json_file[-4:]!='.pkl':
+                    try:
+                        print(json_file)
+                        main(json_file, output_file, plot_result=False)
+                    except:
+                        errorFiles.append(json_file)
+                        print('###########################################',json_file)
                 
 
     
