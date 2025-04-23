@@ -11,8 +11,8 @@ import os
 import matplotlib.pyplot as plt
 
 results = {}
-for root, subdirs, files in os.walk("Instances/Random_instances_1/"):
-    if root != 'Instances/Random_instances_1/':
+for root, subdirs, files in os.walk("Instances/Random_instances/"):
+    if root != 'Instances/Random_instances/':
         results[root] = {'filled_percentages': [], 'nr_obstacles': [],  'nr_bends': [], 'lengths': [], 'total_times': []}
     
     for file in files:
@@ -56,7 +56,7 @@ experiment_pipes = [50, 100, 150, 200, 250, 300]
 positions = range(1, len(experiment_pipes) + 1)  # Positions for box plots
 
 for i, experiment_pipe in enumerate(experiment_pipes):
-    experiment_folder = 'Instances/Random_instances_1/experiments 100100100 ' + str(experiment_pipe) + ' 03'
+    experiment_folder = 'Instances/Random_instances/experiments 100100100 ' + str(experiment_pipe) + ' 03'
     plt.boxplot(results[experiment_folder]['total_times'], positions=[positions[i]], widths=0.6)
 
 plt.xticks(positions, [f'{pipe}' for pipe in experiment_pipes])
@@ -73,7 +73,7 @@ fillratios = ['01','02','03','04','05']
 positions = range(1, len(fillratios) + 1)  # Positions for box plots
 
 for i, fill_ratio in enumerate(fillratios):
-    experiment_folder = 'Instances/Random_instances_1/experiments 100100100 200150 ' + fill_ratio
+    experiment_folder = 'Instances/Random_instances/experiments 100100100 200150 ' + fill_ratio
     plt.boxplot(results[experiment_folder]['total_times'], positions=[positions[i]], widths=0.6)
 
 plt.xticks(positions, [str(int(ratio)*10)+'%' for ratio in fillratios])
