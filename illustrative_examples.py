@@ -700,7 +700,7 @@ if __name__ == "__main__":
     # output_file = 'randomcase_seed12_size100_100_100_pipes200_125_fill03.pkl'
 
     # main(json_file, output_file, plot_result=False)
-    
+
     errorFiles = []
     for root, subdirs, files in os.walk("Instances/Random_instances/"):
         for file in files:

@@ -44,7 +44,7 @@ The backbone of `APRpy` can be found in the `src`-folder:
 ```json
 {
   "name": "your_instance_name",
-  "size": integer,
+  "size": [integer,integer,integer]
   "obstacles": [...],
   "pipes": [...]
 }
